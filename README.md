@@ -83,7 +83,7 @@ If you find SVG Extractor Pro helpful, please consider leaving a review on the F
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/svg-extractor-pro.git
+   git clone https://github.com/ruslanlap/SVG-Export-Firefox-add-on.git
    ```
 
 2. Install dependencies:
