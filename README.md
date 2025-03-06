@@ -8,7 +8,7 @@
   <h3>Find, Extract, and Download SVG Images from Any Web Page</h3>
 
   [![Firefox Add-on](https://img.shields.io/badge/Firefox-Add--on-FF7139?style=for-the-badge&logo=firefox-browser&logoColor=white)](https://addons.mozilla.org/firefox/addon/svg-extractor-pro/)
-  [![Version](https://img.shields.io/badge/Version-1.1.1-blue?style=for-the-badge)](https://github.com/yourusername/svg-extractor-pro/releases)
+  [![Version](https://img.shields.io/badge/Version-1.1.1-blue?style=for-the-badge)](https://github.com/ruslanlap/SVG-Extactor-firefox-add-on/releases)
   [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 </div>
 
@@ -84,7 +84,7 @@ If you find SVG Extractor Pro helpful, please consider leaving a review on the F
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/ruslanlap/SVG-Export-Firefox-add-on.git
+   git clone https://github.com/ruslanlap/SVG-Extractor-Firefox-add-on.git
    ```
 
 2. Install dependencies:
