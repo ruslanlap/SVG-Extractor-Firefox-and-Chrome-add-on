@@ -15,6 +15,7 @@
 ## 🚀 Features
 
 - **Comprehensive SVG Detection**: Finds SVGs in various formats including inline SVGs, image tags, objects, embeds, and even CSS backgrounds
+- **PNG Export**: Export SVGs as PNG files
 - **Modern User Interface**: Clean, responsive design with both light and dark mode support
 - **Batch Download**: Download all SVGs at once as a ZIP file
 - **Individual Downloads**: Download specific SVGs as needed
