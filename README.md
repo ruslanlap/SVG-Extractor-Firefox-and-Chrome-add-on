@@ -70,7 +70,7 @@ If you find SVG Extractor Pro helpful, please consider leaving a review on the F
 
 <div align="center">
   <a href="https://addons.mozilla.org/en-US/firefox/addon/svg-extractor-pro/reviews/">
-    <img src="data/stars.png" alt="Leave a 5-star review" width="450">
+    <img src="data/stars.png" alt="Leave a 5-star review" width="800">
   </a>
 </div>
 
