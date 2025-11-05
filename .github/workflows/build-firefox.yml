@@ -13,6 +13,9 @@ on:
       - main
       - master
 
+permissions:
+  contents: write
+
 jobs:
   build-firefox:
     runs-on: ubuntu-latest
