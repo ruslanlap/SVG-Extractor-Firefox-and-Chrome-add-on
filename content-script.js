@@ -154,11 +154,11 @@
   // Find SVGs and send to background script
   try {
     const svgs = findSVGs();
-    browser.runtime.sendMessage({ action: "foundSVGs", svgs: svgs });
+    chrome.runtime.sendMessage({ action: "foundSVGs", svgs: svgs });
   } catch (error) {
-    browser.runtime.sendMessage({ 
-      action: "error", 
-      message: `Error finding SVGs: ${error.message}` 
+    chrome.runtime.sendMessage({
+      action: "error",
+      message: `Error finding SVGs: ${error.message}`
     });
   }
 })();

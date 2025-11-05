@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       // Зберігаємо налаштування
       localStorage.setItem('theme', 'dark');
-      await browser.storage.local.set({ 'theme': 'dark' });
+      await chrome.storage.local.set({ 'theme': 'dark' });
     } catch (error) {
       console.error("Error setting default theme:", error);
       // Fallback to localStorage
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Зберігаємо вибір мови
     localStorage.setItem('language', lang);
     try {
-      await browser.storage.local.set({ 'language': lang });
+      await chrome.storage.local.set({ 'language': lang });
     } catch (error) {
       console.error("Error saving language preference:", error);
     }
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       // Зберігаємо налаштування
       localStorage.setItem('language', 'en');
-      await browser.storage.local.set({ 'language': 'en' });
+      await chrome.storage.local.set({ 'language': 'en' });
 
       // Встановлюємо атрибут lang для документа
       document.documentElement.setAttribute('lang', 'en');
@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Зберігаємо налаштування (асинхронно, не блокуючи інтерфейс)
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
     try {
-      await browser.storage.local.set({ 'theme': isDark ? 'dark' : 'light' });
+      await chrome.storage.local.set({ 'theme': isDark ? 'dark' : 'light' });
     } catch (error) {
       console.error("Error saving theme preference:", error);
     }
@@ -281,13 +281,15 @@ document.addEventListener('DOMContentLoaded', function() {
       loadingDiv.style.display = 'block';
 
       // Спробуємо ще раз запустити content script
-      browser.tabs.executeScript({
-        file: 'content-script.js'
-      }).catch(error => {
-        console.error("Retry failed:", error);
-        showError(error.message);
+      chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        chrome.scripting.executeScript({
+          target: { tabId: tabs[0].id },
+          files: ['content-script.js']
+        }).catch(error => {
+          console.error("Retry failed:", error);
+          showError(error.message);
+        });
       });
-    });
 
     const errorIcon = document.createElementNS(svgNS, "svg");
     errorIcon.setAttribute("width", "24");
@@ -473,7 +475,7 @@ document.addEventListener('DOMContentLoaded', function() {
       downloadBtn.addEventListener('click', () => {
         try {
           // Передаємо його в background.js, щоб почати завантаження
-          browser.runtime.sendMessage({
+          chrome.runtime.sendMessage({
             action: "downloadSVG",
             svg: svg
           });
@@ -686,7 +688,7 @@ document.addEventListener('DOMContentLoaded', function() {
           const url = URL.createObjectURL(blob);
 
           // Завантажуємо файл
-          browser.downloads.download({
+          chrome.downloads.download({
             url: url,
             filename: filename,
             saveAs: true
@@ -707,7 +709,7 @@ document.addEventListener('DOMContentLoaded', function() {
           setTimeout(() => URL.revokeObjectURL(url), 1000);
         } else if (svg.url) {
           // Для зовнішніх SVG завантажуємо URL
-          browser.downloads.download({
+          chrome.downloads.download({
             url: svg.url,
             filename: filename,
             saveAs: true
@@ -756,15 +758,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Запитуємо у вкладки дані SVG
-    browser.tabs.executeScript({
-      file: 'content-script.js'
-    }).catch(error => {
-      console.error(`Error executing content script: ${error}`);
-      showError(error.message);
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      chrome.scripting.executeScript({
+        target: { tabId: tabs[0].id },
+        files: ['content-script.js']
+      }).catch(error => {
+        console.error(`Error executing content script: ${error}`);
+        showError(error.message);
+      });
     });
 
     // Отримуємо повідомлення з SVG від content-script
-    browser.runtime.onMessage.addListener((message) => {
+    chrome.runtime.onMessage.addListener((message) => {
       if (message && message.action === "foundSVGs") {
         displaySVGs(message.svgs);
       } else if (message && message.action === "error") {

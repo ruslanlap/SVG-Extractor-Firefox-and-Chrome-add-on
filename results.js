@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       // Try to save to browser storage
       try {
-        browser.storage.local.set({ 'theme': 'dark' })
+        chrome.storage.local.set({ 'theme': 'dark' })
           .catch(err => console.error("Error saving theme to browser storage:", err));
       } catch (error) {
         console.error("Browser storage not accessible:", error);
@@ -235,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Try to save to browser storage if available
     try {
-      browser.storage.local.set({ 'language': lang }).catch(err => 
+      chrome.storage.local.set({ 'language': lang }).catch(err =>
         console.error("Error saving language to browser storage:", err));
     } catch (error) {
       console.error("Browser storage not accessible:", error);
@@ -325,7 +325,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Save preference to localStorage and browser storage
       localStorage.setItem('language', 'en');
       try {
-        browser.storage.local.set({ 'language': 'en' })
+        chrome.storage.local.set({ 'language': 'en' })
           .catch(err => console.error("Error saving language to browser storage:", err));
       } catch (error) {
         console.error("Browser storage not accessible:", error);
@@ -539,7 +539,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Try to save to browser storage if available
     try {
-      browser.storage.local.set({ 'theme': isDark ? 'dark' : 'light' })
+      chrome.storage.local.set({ 'theme': isDark ? 'dark' : 'light' })
         .catch(err => console.error("Error saving theme to browser storage:", err));
     } catch (error) {
       console.error("Browser storage not accessible:", error);
@@ -839,7 +839,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
           // Load SVGs from storage
           try {
-          browser.storage.local.get('svgs').then((data) => {
+          chrome.storage.local.get('svgs').then((data) => {
           const svgs = data.svgs || [];
 
           // Update download all button text with proper translation
@@ -1344,7 +1344,7 @@ document.addEventListener('DOMContentLoaded', function() {
           contentDiv.style.display = 'block';
           });
           } catch (error) {
-          // Handle case where browser.storage is not available
+          // Handle case where chrome.storage is not available
           console.error("Error accessing browser storage:", error);
           loadingDiv.style.display = 'none';
 
@@ -1363,7 +1363,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
           // Listen for messages from background script or popup
           try {
-          browser.runtime.onMessage.addListener((message) => {
+          chrome.runtime.onMessage.addListener((message) => {
           if (message.action === "refreshSVGs") {
           window.location.reload();
           } else if (message.action === "showError") {

@@ -4,14 +4,16 @@
 
 <div align="center">
   <img src="icons/icon128.png" alt="SVG Extractor Pro Logo" width="128" height="128">
-  
+
   <h3>Find, Extract, and Download SVG Images from Any Web Page</h3>
 
+  [![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-4285F4?style=for-the-badge&logo=google-chrome&logoColor=white)](#)
   [![Firefox Add-on](https://img.shields.io/badge/Firefox-Add--on-FF7139?style=for-the-badge&logo=firefox-browser&logoColor=white)](https://addons.mozilla.org/firefox/addon/svg-extractor-pro/)
   [![Version](https://img.shields.io/badge/Version-1.1.1-blue?style=for-the-badge)](https://github.com/ruslanlap/SVG-Extractor-Firefox-add-on/releases)
-  [![Version](https://img.shields.io/badge/Version-1.1.1-blue?style=for-the-badge)](https://github.com/ruslanlap/SVG-Extractor-firefox-add-on/releases)
   [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 </div>
+
+> **✨ Тепер доступно для Google Chrome!** Це робоча версія для Chrome з повною підтримкою Manifest V3.
 
 ## 🚀 Features
 
@@ -33,11 +35,24 @@
 
 ## 📋 How It Works
 
-1. **Install the Add-on**: Add SVG Extractor Pro to your Firefox browser
+1. **Install the Extension**:
+   - **Chrome**: See [CHROME_INSTALLATION.md](CHROME_INSTALLATION.md) for detailed instructions
+   - **Firefox**: Install from [Firefox Add-ons store](https://addons.mozilla.org/firefox/addon/svg-extractor-pro/)
 2. **Navigate to Any Website**: Go to a website containing SVG images
 3. **Click the Extension Icon**: The extension will scan the page for SVGs
 4. **View Results**: Browse through all detected SVGs on the results page
 5. **Download or Copy**: Save individual SVGs or download all as a ZIP file
+
+## 💻 Chrome Installation
+
+For Chrome users, this extension uses **Manifest V3**. To install:
+
+1. Open Chrome and navigate to `chrome://extensions/`
+2. Enable "Developer mode" in the top right
+3. Click "Load unpacked" and select this folder
+4. The extension is now ready to use!
+
+For detailed instructions, see [CHROME_INSTALLATION.md](CHROME_INSTALLATION.md).
 
 ## 🔧 Technical Details
 

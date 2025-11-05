@@ -1,5 +1,5 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "SVG Extractor Pro",
   "version": "1.1.1",
   "description": "Finds and loads SVG images from web pages",
@@ -8,28 +8,34 @@
     "storage",
     "downloads",
     "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
     "<all_urls>"
   ],
   "background": {
-    "scripts": ["background.js"],
-    "persistent": false
+    "service_worker": "background.js"
   },
-  "browser_action": {
+  "action": {
     "default_title": "Find SVG on the page",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     }
-    // default_popup видалено, щоб при кліку не відкривався стандартний popup
   },
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "content_security_policy": "script-src 'self'; object-src 'self'; img-src 'self' data: *;",
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
   "web_accessible_resources": [
-    "icons/*"
+    {
+      "resources": ["icons/*"],
+      "matches": ["<all_urls>"]
+    }
   ]
 }
