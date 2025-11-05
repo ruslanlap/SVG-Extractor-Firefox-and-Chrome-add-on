@@ -23,7 +23,7 @@ git push origin firefox/my-new-feature
 
 **Результат:**
 - ✅ GitHub автоматично запустить збірку
-- 📦 Створить `.xpi` файл для Firefox
+- 📦 Створить `.zip` файл для Firefox
 - 🔍 Перевірить код через `web-ext`
 - 💾 Завантажить артефакт
 
@@ -65,7 +65,7 @@ git push origin v1.2.0
 
 **Результат:**
 - ✅ Створить GitHub Release
-- 🦊 Збере Firefox версію (.xpi)
+- 🦊 Збере Firefox версію (.zip)
 - 🌐 Збере Chrome версію (.zip)
 - 📝 Згенерує release notes
 - 🎉 Опублікує реліз
@@ -87,7 +87,7 @@ git push origin v1.2.0
 1. Перейдіть на GitHub → вкладка **Releases**
 2. Знайдіть свій реліз
 3. Завантажте файли:
-   - `svg-extractor-pro-{version}-firefox.xpi`
+   - `svg-extractor-pro-{version}-firefox.zip`
    - `svg-extractor-pro-{version}-chrome.zip`
 
 ---
@@ -147,7 +147,7 @@ gh browse --actions
 ┌─────────────────────────────────────────────────┐
 │  Push до гілки firefox/*                        │
 │  → Запускається build-firefox.yml               │
-│  → Створюється .xpi файл                        │
+│  → Створюється .zip файл                        │
 │  → Завантажується як artifact                   │
 └─────────────────────────────────────────────────┘
 
@@ -236,10 +236,10 @@ git push origin firefox/add-export-feature
 # GitHub → Actions → Чекаємо зелену галочку ✅
 
 # 6. Завантажуємо артефакт
-# Actions → Workflow → Artifacts → Завантажити .xpi
+# Actions → Workflow → Artifacts → Завантажити .zip
 
 # 7. Тестуємо локально
-# Встановлюємо .xpi в Firefox
+# Розпаковуємо .zip та завантажуємо в Firefox (about:debugging)
 
 # 8. Якщо все ОК - мержимо в main
 # Створюємо PR → Merge

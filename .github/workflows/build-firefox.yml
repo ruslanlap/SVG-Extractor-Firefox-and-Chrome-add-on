@@ -55,11 +55,6 @@ jobs:
           cd firefox-build
           web-ext lint --warnings-as-errors=false
 
-      - name: Build Firefox extension (XPI)
-        run: |
-          cd firefox-build
-          web-ext build --overwrite-dest
-
       - name: Get version from manifest
         id: get_version
         run: |
@@ -67,23 +62,25 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
 
-      - name: Create release directory
+      - name: Create Firefox package (ZIP)
         run: |
+          cd firefox-build
+          zip -r ../firefox-extension.zip . -x "*.git*" "*.DS_Store"
+          cd ..
           mkdir -p releases/firefox
-          cp firefox-build/web-ext-artifacts/*.zip releases/firefox/svg-extractor-pro-firefox-${{ steps.get_version.outputs.version }}.xpi || true
+          mv firefox-extension.zip releases/firefox/svg-extractor-pro-firefox-${{ steps.get_version.outputs.version }}.zip
 
       - name: Upload Firefox artifact
         uses: actions/upload-artifact@v4
         with:
           name: firefox-extension-${{ steps.get_version.outputs.version }}
-          path: releases/firefox/*.xpi
-          if-no-files-found: warn
+          path: releases/firefox/*.zip
 
       - name: Create Release on Tag
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v1
         with:
-          files: releases/firefox/*.xpi
+          files: releases/firefox/*.zip
           draft: false
           prerelease: false
           generate_release_notes: true
@@ -99,4 +96,4 @@ jobs:
           echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Firefox extension (.xpi) has been built successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "Firefox extension (.zip) has been built successfully!" >> $GITHUB_STEP_SUMMARY

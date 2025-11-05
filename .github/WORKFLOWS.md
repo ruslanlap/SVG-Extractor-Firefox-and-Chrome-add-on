@@ -16,12 +16,12 @@
 **Що робить:**
 - ✅ Створює Firefox build директорію
 - ✅ Валідує розширення за допомогою `web-ext`
-- ✅ Збирає `.xpi` файл
+- ✅ Збирає `.zip` файл
 - ✅ Завантажує артефакт
 - ✅ Створює GitHub Release (якщо це тег)
 
 **Артефакти:**
-- `svg-extractor-pro-firefox-{version}.xpi`
+- `svg-extractor-pro-firefox-{version}.zip`
 
 **Вимоги:**
 - Manifest version 2
@@ -72,14 +72,14 @@
 
 **Що робить:**
 - ✅ Створює draft release на GitHub
-- ✅ Збирає Firefox версію (.xpi)
+- ✅ Збирає Firefox версію (.zip)
 - ✅ Збирає Chrome версію (.zip)
 - ✅ Додає обидва файли до release
 - ✅ Публікує release (знімає draft)
 - ✅ Генерує release notes автоматично
 
 **Артефакти:**
-- `svg-extractor-pro-{version}-firefox.xpi`
+- `svg-extractor-pro-{version}-firefox.zip`
 - `svg-extractor-pro-{version}-chrome.zip`
 - `CHROME-INSTALLATION.txt`
 

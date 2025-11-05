@@ -59,17 +59,17 @@ jobs:
 
             Choose the version for your browser:
 
-            - **Firefox**: Download `.xpi` file
+            - **Firefox**: Download `.zip` file
             - **Chrome/Edge/Brave/Opera**: Download `.zip` file
 
             ## 🚀 Installation
 
             ### Firefox
-            1. Download the `.xpi` file
+            1. Download the `.zip` file and extract it
             2. Open Firefox
-            3. Go to Add-ons (Ctrl+Shift+A)
-            4. Click the gear icon and select "Install Add-on From File"
-            5. Select the downloaded `.xpi` file
+            3. Go to `about:debugging#/runtime/this-firefox`
+            4. Click "Load Temporary Add-on"
+            5. Select any file from the extracted folder (e.g., manifest.json)
 
             ### Chrome/Edge/Brave/Opera
             1. Download and extract the `.zip` file
@@ -130,18 +130,19 @@ jobs:
           cp -r lib firefox-build/
           cp -r data firefox-build/ || true
 
-      - name: Build XPI
+      - name: Build ZIP
         run: |
           cd firefox-build
-          web-ext build --overwrite-dest
-          mkdir -p ../releases
-          cp web-ext-artifacts/*.zip ../releases/svg-extractor-pro-${{ needs.create-release.outputs.version }}-firefox.xpi
+          zip -r ../firefox-package.zip . -x "*.git*" "*.DS_Store"
+          cd ..
+          mkdir -p releases
+          mv firefox-package.zip releases/svg-extractor-pro-${{ needs.create-release.outputs.version }}-firefox.zip
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ needs.create-release.outputs.version }}
-          files: releases/*.xpi
+          files: releases/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -236,7 +237,7 @@ jobs:
           echo "**Version:** v${{ needs.create-release.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Built packages:**" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Firefox (.xpi)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Firefox (.zip)" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Chrome (.zip)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "[View Release](https://github.com/${{ github.repository }}/releases/tag/v${{ needs.create-release.outputs.version }})" >> $GITHUB_STEP_SUMMARY
