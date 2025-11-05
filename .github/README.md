@@ -1,9 +1,9 @@
 # SVG Extractor Pro
 
-![SVG Extractor Pro Header](.data/header3.png)
+![SVG Extractor Pro Header](./data/header3.png)
 
 <div align="center">
-  <img src="icons/icon128.png" alt="SVG Extractor Pro Logo" width="128" height="128">
+  <img src="./icons/icon128.png" alt="SVG Extractor Pro Logo" width="128" height="128">
 
   <h3>Find, Extract, and Download SVG Images from Any Web Page</h3>
 
