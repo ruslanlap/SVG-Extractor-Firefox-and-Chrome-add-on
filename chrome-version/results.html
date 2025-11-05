@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>SVG Extractor Pro - Results</title>
+        <link rel="stylesheet" href="results.css" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+            rel="stylesheet"
+        />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+        <script src="../lib/jszip.min.js"></script>
+    </head>
+    <body>
+        <!-- Feedback and Support Section -->
+        <div class="feedback-support">
+            <div class="support-container">
+                <div class="support-item">
+                    <a
+                        href="https://forms.gle/xDCN4ACr5QKDmYkYA"
+                        class="support-link"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <path
+                                d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                            ></path>
+                        </svg>
+                        <span
+                            class="feedback-text"
+                            data-en="Leave Feedback"
+                            data-uk="Залишити відгук"
+                            >Leave Feedback</span
+                        >
+                    </a>
+                </div>
+
+                <div class="support-item">
+                    <a
+                        href="https://forms.gle/xDCN4ACr5QKDmYkYA"
+                        class="support-link"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <path d="M8 2h8"></path>
+                            <path d="M12 14v7"></path>
+                            <path d="M5 8h14"></path>
+                            <path d="M7 17a5 5 0 1 0 10 0"></path>
+                            <path d="M12 2v7"></path>
+                        </svg>
+                        <span
+                            class="feedback-text"
+                            data-en="Report a Bug"
+                            data-uk="Повідомити про помилку"
+                            >Report a Bug</span
+                        >
+                    </a>
+                </div>
+
+                <div class="support-item">
+                    <a
+                        href="https://ruslanlap.github.io/ruslanlap_buymeacoffe/"
+                        class="support-link"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                            <path
+                                d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"
+                            ></path>
+                            <line x1="6" y1="1" x2="6" y2="4"></line>
+                            <line x1="10" y1="1" x2="10" y2="4"></line>
+                            <line x1="14" y1="1" x2="14" y2="4"></line>
+                        </svg>
+                        <span
+                            class="feedback-text"
+                            data-en="Buy Me a Coffee"
+                            data-uk="Пригостити кавою"
+                            >Buy Me a Coffee</span
+                        >
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="controls">
+                <button id="lang-toggle-en" class="lang-toggle" title="English">
+                    <span style="font-size: 18px">🇺🇸</span>
+                </button>
+                <button
+                    id="lang-toggle-uk"
+                    class="lang-toggle"
+                    title="Українська"
+                >
+                    <span style="font-size: 18px">🇺🇦</span>
+                </button>
+                <button
+                    id="theme-toggle"
+                    class="theme-toggle"
+                    aria-label="Toggle dark mode"
+                >
+                    <svg
+                        id="theme-icon-light"
+                        class="theme-icon"
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line
+                            x1="18.36"
+                            y1="18.36"
+                            x2="19.78"
+                            y2="19.78"
+                        ></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg
+                        id="theme-icon-dark"
+                        class="theme-icon"
+                        style="display: none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <path
+                            d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+                        ></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="header">
+                <h1 id="page-title">SVG Extractor Pro</h1>
+                <p id="page-subtitle">SVGs found on the page</p>
+                <button id="download-all-btn" class="download-all-btn">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <path
+                            d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                        ></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span id="download-all-text">Download All SVGs</span>
+                </button>
+            </div>
+
+            <div id="loading">
+                <div class="spinner"></div>
+                Loading SVGs...
+            </div>
+            <div id="no-svg" style="display: none">
+                No SVG images found on this page.
+            </div>
+            <div id="content" style="display: none">
+                <!-- Content will be generated here with found SVGs -->
+            </div>
+        </div>
+        <script src="results.js"></script>
+    </body>
+</html>
