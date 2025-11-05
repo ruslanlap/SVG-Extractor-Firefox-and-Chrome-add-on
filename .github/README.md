@@ -1,9 +1,9 @@
 # SVG Extractor Pro
 
-![SVG Extractor Pro Header](./data/header3.png)
+![SVG Extractor Pro Header](../data/header3.png)
 
 <div align="center">
-  <img src="./icons/icon128.png" alt="SVG Extractor Pro Logo" width="128" height="128">
+  <img src="../icons/icon128.png" alt="SVG Extractor Pro Logo" width="128" height="128">
 
   <h3>Find, Extract, and Download SVG Images from Any Web Page</h3>
 
@@ -33,8 +33,8 @@
 ## 📸 Screenshots
 
 <div align="center">
-  <img src="data/header1.png" alt="SVG Extractor Pro Screenshot 1" width="400">
-  <img src="data/header2.png" alt="SVG Extractor Pro Screenshot 2" width="400">
+  <img src="../data/header1.png" alt="SVG Extractor Pro Screenshot 1" width="400">
+  <img src="../data/header2.png" alt="SVG Extractor Pro Screenshot 2" width="400">
 </div>
 
 ## 📋 How It Works
@@ -89,7 +89,7 @@ If you find SVG Extractor Pro helpful, please consider leaving a review on the F
 
 <div align="center">
   <a href="https://addons.mozilla.org/en-US/firefox/addon/svg-extractor-pro/reviews/">
-    <img src="data/stars.png" alt="Leave a 5-star review" width="800">
+    <img src="../data/stars.png" alt="Leave a 5-star review" width="800">
   </a>
 </div>
 
