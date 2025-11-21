@@ -52,7 +52,7 @@ jobs:
         with:
           tag_name: v${{ steps.get_version.outputs.version }}
           name: SVG Extractor Pro v${{ steps.get_version.outputs.version }}
-          draft: true
+          draft: false
           prerelease: false
           generate_release_notes: true
           body: |
@@ -213,26 +213,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Publish Release
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { owner, repo } = context.repo;
-            const release = await github.rest.repos.getRelease({
-              owner,
-              repo,
-              release_id: '${{ needs.create-release.outputs.release_id }}'
-            });
-
-            await github.rest.repos.updateRelease({
-              owner,
-              repo,
-              release_id: release.data.id,
-              draft: false
-            });
-
-            core.notice('✅ Release published successfully!');
-
       - name: Print Summary
         run: |
           echo "### 🎉 Release Complete!" >> $GITHUB_STEP_SUMMARY
