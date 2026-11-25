@@ -149,6 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const img = new Image();
         img.crossOrigin = "anonymous";
+        let triedFallback = false;
         img.onload = () => {
           const scale = 2;
           const canvas = document.createElement("canvas");
@@ -159,7 +160,14 @@ document.addEventListener("DOMContentLoaded", () => {
           ctx.drawImage(img, 0, 0, w, h);
           resolve(canvas.toDataURL("image/png"));
         };
-        img.onerror = () => reject(new Error("PNG conversion failed"));
+        img.onerror = () => {
+          if (!svg.content && svg.fallbackUrl && !triedFallback && img.src !== svg.fallbackUrl) {
+            triedFallback = true;
+            img.src = svg.fallbackUrl;
+            return;
+          }
+          reject(new Error("PNG conversion failed"));
+        };
         img.src = srcUrl;
       } catch (err) {
         reject(err);
@@ -247,6 +255,12 @@ document.addEventListener("DOMContentLoaded", () => {
         img.src = svg.url;
         img.alt = svg.name || "SVG";
         img.loading = "lazy";
+        img.onerror = () => {
+          if (svg.fallbackUrl && !img.dataset.triedFallback && img.src !== svg.fallbackUrl) {
+            img.dataset.triedFallback = "1";
+            img.src = svg.fallbackUrl;
+          }
+        };
         previewDiv.appendChild(img);
       }
 

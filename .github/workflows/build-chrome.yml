@@ -3,6 +3,8 @@ name: Build Chrome Extension
 on:
   push:
     branches:
+      - main
+      - master
       - 'chrome/**'
       - 'claude/chrome-*'
     tags:

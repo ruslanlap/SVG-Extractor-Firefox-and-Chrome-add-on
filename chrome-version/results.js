@@ -310,22 +310,19 @@ document.addEventListener("DOMContentLoaded", () => {
       .trim();
   }
 
-  async function resolveSvgMarkup(svg) {
-    if (svg.content) return svg.content;
-    if (!svg.url) throw new Error("No SVG content or URL");
-
-    if (svg.url.startsWith("data:image/svg+xml")) {
-      const commaIdx = svg.url.indexOf(",");
+  async function fetchSvgText(targetUrl) {
+    if (targetUrl.startsWith("data:image/svg+xml")) {
+      const commaIdx = targetUrl.indexOf(",");
       if (commaIdx === -1) throw new Error("Malformed data URL");
-      const meta = svg.url.slice(0, commaIdx);
-      const payload = svg.url.slice(commaIdx + 1);
+      const meta = targetUrl.slice(0, commaIdx);
+      const payload = targetUrl.slice(commaIdx + 1);
       return meta.includes(";base64") ? atob(payload) : decodeURIComponent(payload);
     }
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 8000);
     try {
-      const res = await fetch(svg.url, {
+      const res = await fetch(targetUrl, {
         signal: controller.signal,
         headers: { Accept: "image/svg+xml,*/*" }
       });
@@ -334,11 +331,32 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!text.includes("<svg")) {
         throw new Error("Response is not valid SVG");
       }
-      svg.content = text; // Cache for subsequent copies/exports
       return text;
     } finally {
       clearTimeout(timer);
     }
+  }
+
+  async function resolveSvgMarkup(svg) {
+    if (svg.content) return svg.content;
+    if (!svg.url && !svg.fallbackUrl) throw new Error("No SVG content or URL");
+
+    const candidates = [svg.url, svg.fallbackUrl].filter(
+      (u, i, arr) => Boolean(u) && arr.indexOf(u) === i
+    );
+
+    let lastError = null;
+    for (const candidateUrl of candidates) {
+      try {
+        const text = await fetchSvgText(candidateUrl);
+        svg.content = text; // Cache for subsequent copies/exports
+        return text;
+      } catch (err) {
+        lastError = err;
+      }
+    }
+
+    throw lastError || new Error("Unable to fetch SVG markup");
   }
 
   async function convertSvgToPngDataUrl(svg, scale = 2) {
@@ -371,7 +389,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (svg.url) {
       width = Math.max(16, Math.round(width || 256));
       height = Math.max(16, Math.round(height || 256));
-      return rasterizeImageToPng(svg.url, width, height, scale, true);
+      try {
+        return await rasterizeImageToPng(svg.url, width, height, scale, true);
+      } catch (err) {
+        if (svg.fallbackUrl && svg.fallbackUrl !== svg.url) {
+          return rasterizeImageToPng(svg.fallbackUrl, width, height, scale, true);
+        }
+        throw err;
+      }
     }
 
     throw new Error("No renderable SVG source");
@@ -721,6 +746,11 @@ document.addEventListener("DOMContentLoaded", () => {
       img.alt = svg.name || "SVG";
       img.loading = "lazy";
       img.onerror = () => {
+        if (svg.fallbackUrl && !img.dataset.triedFallback && img.src !== svg.fallbackUrl) {
+          img.dataset.triedFallback = "1";
+          img.src = svg.fallbackUrl;
+          return;
+        }
         container.innerHTML = "";
         const err = document.createElement("div");
         err.className = "preview-error";

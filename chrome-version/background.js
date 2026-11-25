@@ -364,18 +364,31 @@ function downloadSVG(svgData) {
         }
 
         const targetUrl = svgData.url;
-        fetch(targetUrl, {
-          method: "GET",
-          mode: "cors",
-          cache: "no-cache",
-          credentials: "same-origin",
-          headers: { Accept: "image/svg+xml,*/*" }
-        })
-          .then((response) => {
+        const fetchSvg = (url) =>
+          fetch(url, {
+            method: "GET",
+            mode: "cors",
+            cache: "no-cache",
+            credentials: "same-origin",
+            headers: { Accept: "image/svg+xml,*/*" }
+          }).then((response) => {
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.text();
+          });
+
+        fetchSvg(targetUrl)
+          .catch((primaryErr) => {
+            if (svgData.fallbackUrl && svgData.fallbackUrl !== targetUrl) {
+              return fetchSvg(svgData.fallbackUrl).then((text) => {
+                if (!text.includes("<svg")) {
+                  throw new Error("Fallback response is not valid SVG");
+                }
+                return text;
+              });
+            }
+            throw primaryErr;
           })
           .then((svgText) => downloadSvgContent(svgText, filename))
           .then(resolve)

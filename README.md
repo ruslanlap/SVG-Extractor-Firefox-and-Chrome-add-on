@@ -11,7 +11,7 @@
 
   [![Chrome Extension](https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4?style=for-the-badge&logo=google-chrome&logoColor=white)](#)
   [![Firefox Add-on](https://img.shields.io/badge/Firefox-Add--on-FF7139?style=for-the-badge&logo=firefox-browser&logoColor=white)](https://addons.mozilla.org/firefox/addon/svg-extractor-pro/)
-  [![Version](https://img.shields.io/badge/Version-1.2.1-5E3BEE?style=for-the-badge)](https://github.com/ruslanlap/SVG-Extractor-Firefox-and-Chrome-add-on/releases)
+  [![Version](https://img.shields.io/badge/Version-1.2.2-5E3BEE?style=for-the-badge)](https://github.com/ruslanlap/SVG-Extractor-Firefox-and-Chrome-add-on/releases)
   [![License](https://img.shields.io/badge/License-MIT-16A34A?style=for-the-badge)](LICENSE)
 
   ![Firefox Build](https://github.com/ruslanlap/SVG-Extractor-Firefox-and-Chrome-add-on/actions/workflows/build-firefox.yml/badge.svg)
