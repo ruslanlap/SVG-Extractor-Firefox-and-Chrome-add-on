@@ -1,6 +1,6 @@
 # SVG Extractor Pro - Chrome Edition
 
-![Version](https://img.shields.io/badge/Version-1.2.2-blue?style=flat-square)
+![Version](https://img.shields.io/badge/Version-1.2.3-blue?style=flat-square)
 ![Chrome](https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4?style=flat-square&logo=google-chrome&logoColor=white)
 
 ## 🚀 Швидке встановлення
@@ -100,5 +100,5 @@ MIT License - використовуйте вільно!
 ---
 
 **Розробник**: [RuslanLap](https://github.com/ruslanlap)
-**Версія**: 1.2.2
+**Версія**: 1.2.3
 **Підтримка**: Chrome 88+, Edge 88+, Brave, Opera

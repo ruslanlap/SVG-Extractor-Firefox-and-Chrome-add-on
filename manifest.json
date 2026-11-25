@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SVG Extractor Pro",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Finds, inspects, and exports SVG images from web pages",
   "permissions": [
     "activeTab",

@@ -54,6 +54,24 @@
     return el?.ownerDocument?.baseURI || document.baseURI;
   }
 
+  function safeGetComputedStyle(win, el, pseudo = null) {
+    if (!win || typeof win.getComputedStyle !== "function" || !el) return null;
+    try {
+      return pseudo ? win.getComputedStyle(el, pseudo) : win.getComputedStyle(el);
+    } catch {
+      return null;
+    }
+  }
+
+  function safeQueryAll(root, selector) {
+    if (!root || typeof root.querySelectorAll !== "function") return [];
+    try {
+      return Array.from(root.querySelectorAll(selector));
+    } catch {
+      return [];
+    }
+  }
+
   function resolveAbsoluteUrl(rawUrl, baseUri = document.baseURI) {
     if (!rawUrl) return "";
     const trimmed = String(rawUrl).trim();
@@ -357,21 +375,31 @@
       visited.add(root);
       roots.push(root);
 
-      const elements = root.querySelectorAll ? root.querySelectorAll("*") : [];
+      const elements = safeQueryAll(root, "*");
       for (let i = 0; i < elements.length; i++) {
         const el = elements[i];
         if (el.shadowRoot && !visited.has(el.shadowRoot)) {
           queue.push(el.shadowRoot);
         }
-        const tag = el.tagName;
-        if (tag === "IFRAME" || tag === "FRAME" || tag === "OBJECT") {
+        const tag = (el.tagName || "").toUpperCase();
+        if (tag === "IFRAME" || tag === "FRAME") {
+          const frameStyle = safeGetComputedStyle(getElementWindow(el), el);
+          if (!frameStyle || frameStyle.display === "none" || frameStyle.visibility === "hidden") {
+            continue;
+          }
           try {
             const childDoc = el.contentDocument;
-            if (childDoc && !visited.has(childDoc)) {
+            if (
+              childDoc &&
+              childDoc.documentElement &&
+              childDoc.defaultView &&
+              safeGetComputedStyle(childDoc.defaultView, childDoc.documentElement) &&
+              !visited.has(childDoc)
+            ) {
               queue.push(childDoc);
             }
           } catch {
-            // Cross-origin frame/object cannot be accessed
+            // Cross-origin frame cannot be accessed
           }
         }
       }
@@ -383,7 +411,7 @@
   function collectSymbolRegistry(roots) {
     const registry = new Map();
     for (const root of roots) {
-      root.querySelectorAll("symbol[id], svg defs [id], svg g[id]").forEach((el) => {
+      safeQueryAll(root, "symbol[id], svg defs [id], svg g[id]").forEach((el) => {
         const id = el.getAttribute("id");
         if (id && !registry.has(id)) {
           registry.set(id, el);
@@ -405,7 +433,7 @@
   async function collectExternalSymbols(roots) {
     const externalSpriteUrls = new Set();
     for (const root of roots) {
-      root.querySelectorAll("svg use").forEach((useEl) => {
+      safeQueryAll(root, "svg use").forEach((useEl) => {
         const rawHref = getUseRawHref(useEl);
         if (!rawHref || rawHref.startsWith("#")) return;
         const hashIdx = rawHref.indexOf("#");
@@ -427,7 +455,7 @@
     await Promise.all(
       Array.from(externalSpriteUrls).map(async (spriteUrl) => {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 2500);
+        const timer = setTimeout(() => controller.abort(), 1200);
         try {
           const res = await fetch(spriteUrl, {
             signal: controller.signal,
@@ -440,7 +468,7 @@
           if (doc.querySelector("parsererror")) throw new Error("Invalid SVG");
 
           let indexed = 0;
-          doc.querySelectorAll("symbol[id], defs [id], g[id]").forEach((el) => {
+          safeQueryAll(doc, "symbol[id], defs [id], g[id]").forEach((el) => {
             const id = el.getAttribute("id");
             if (id) {
               externalRegistry.set(`${spriteUrl}#${id}`, el);
@@ -495,7 +523,10 @@
       if (cur.hasAttribute && cur.hasAttribute(attrName)) {
         return true;
       }
-      const styleVal = cur.style && cur.style[attrName];
+      const styleVal =
+        cur.style && typeof cur.style.getPropertyValue === "function"
+          ? cur.style.getPropertyValue(attrName)
+          : cur.style && cur.style[attrName];
       if (styleVal) {
         return true;
       }
@@ -509,8 +540,8 @@
     const win = getElementWindow(origSvg);
     if (!win || typeof win.getComputedStyle !== "function") return;
 
-    const origNodes = origSvg.querySelectorAll(SVG_PAINT_TAGS_SELECTOR);
-    const cloneNodes = cloneSvg.querySelectorAll(SVG_PAINT_TAGS_SELECTOR);
+    const origNodes = safeQueryAll(origSvg, SVG_PAINT_TAGS_SELECTOR);
+    const cloneNodes = safeQueryAll(cloneSvg, SVG_PAINT_TAGS_SELECTOR);
     if (origNodes.length !== cloneNodes.length) return;
 
     for (let i = 0; i < origNodes.length; i++) {
@@ -518,7 +549,7 @@
       if (isInsideNonRenderContainer(origNode, origSvg)) continue;
 
       const cloneNode = cloneNodes[i];
-      const computed = win.getComputedStyle(origNode);
+      const computed = safeGetComputedStyle(win, origNode);
       if (!computed) continue;
 
       if (!hasExplicitPaintAttr(origNode, origSvg, "fill")) {
@@ -642,429 +673,474 @@
     let index = 0;
     const roots = collectQueryRoots();
     const symbolRegistry = collectSymbolRegistry(roots);
-    const { externalRegistry, failedSprites } = await collectExternalSymbols(roots);
+    let externalRegistry = new Map();
+    let failedSprites = [];
+    try {
+      const external = await collectExternalSymbols(roots);
+      externalRegistry = external.externalRegistry;
+      failedSprites = external.failedSprites;
+    } catch {
+      // Ignore external sprite fetch errors
+    }
     const usedSymbolIds = new Set();
     const pictureImageUrls = new WeakMap();
 
     // 1. Inline <svg> elements & <use> sprite resolution across all roots
-    for (const root of roots) {
-      root.querySelectorAll("svg").forEach((svg) => {
-        if (svg.parentElement && svg.parentElement.closest("svg")) {
-          return; // Nested <svg> is already captured inside its parent
-        }
+    try {
+      for (const root of roots) {
+        safeQueryAll(root, "svg").forEach((svg) => {
+          try {
+            if (svg.parentElement && svg.parentElement.closest("svg")) {
+              return; // Nested <svg> is already captured inside its parent
+            }
 
-        if (isSpriteContainerOnly(svg)) {
-          return;
-        }
+            if (isSpriteContainerOnly(svg)) {
+              return;
+            }
 
-        svg.querySelectorAll("use").forEach((u) => {
-          const href = getUseRawHref(u);
-          if (href.startsWith("#")) usedSymbolIds.add(href.slice(1));
+            safeQueryAll(svg, "use").forEach((u) => {
+              const href = getUseRawHref(u);
+              if (href.startsWith("#")) usedSymbolIds.add(href.slice(1));
+            });
+
+            const resolved = resolveSpriteSvg(svg, symbolRegistry, externalRegistry);
+            const targetSvg = resolved.element;
+            const svgContent = serializeSvgElement(targetSvg);
+
+            if (!svgContent || svgContent.length < 16) return;
+
+            const win = getElementWindow(svg);
+            const rect = svg.getBoundingClientRect ? svg.getBoundingClientRect() : { width: 0, height: 0 };
+            const computed = safeGetComputedStyle(win, svg);
+            const viewBox = targetSvg.getAttribute("viewBox") || "";
+            const vbDims = parseViewBoxDims(viewBox);
+
+            const width =
+              parseNumericDim(targetSvg.getAttribute("width")) ||
+              parseNumericDim(svg.style?.width) ||
+              Math.round(rect.width) ||
+              vbDims.width ||
+              100;
+
+            const height =
+              parseNumericDim(targetSvg.getAttribute("height")) ||
+              parseNumericDim(svg.style?.height) ||
+              Math.round(rect.height) ||
+              vbDims.height ||
+              100;
+
+            const firstUseEl = svg.querySelector("use");
+            const firstUseHref = firstUseEl ? getUseRawHref(firstUseEl) : "";
+            const hashIdx = firstUseHref.indexOf("#");
+            const useSymbolName = hashIdx !== -1 ? firstUseHref.slice(hashIdx + 1) : "";
+
+            const rawName =
+              svg.getAttribute("id") ||
+              svg.getAttribute("aria-label") ||
+              svg.querySelector("title")?.textContent ||
+              useSymbolName ||
+              svg.getAttribute("data-icon") ||
+              "";
+
+            const fallback = resolved.isSprite ? `sprite-${index + 1}` : `svg-${index + 1}`;
+            const name = sanitizeName(rawName, fallback);
+            index++;
+
+            const usesCurrentColor = svgContent.includes("currentColor");
+            svgs.push({
+              id: `${resolved.isSprite ? "sprite" : "inline"}-${index}`,
+              name,
+              type: resolved.isSprite ? "sprite" : "inline",
+              content: svgContent,
+              width: Math.round(width * 100) / 100,
+              height: Math.round(height * 100) / 100,
+              viewBox,
+              size: estimateByteSize(svgContent),
+              computedColor: usesCurrentColor && computed ? computed.color : ""
+            });
+          } catch {
+            // Skip malformed inline SVG node without breaking full scan
+          }
         });
-
-        const resolved = resolveSpriteSvg(svg, symbolRegistry, externalRegistry);
-        const targetSvg = resolved.element;
-        const svgContent = serializeSvgElement(targetSvg);
-
-        if (!svgContent || svgContent.length < 16) return;
-
-        const win = getElementWindow(svg);
-        const rect = svg.getBoundingClientRect();
-        const computed = win.getComputedStyle(svg);
-        const viewBox = targetSvg.getAttribute("viewBox") || "";
-        const vbDims = parseViewBoxDims(viewBox);
-
-        const width =
-          parseNumericDim(targetSvg.getAttribute("width")) ||
-          parseNumericDim(svg.style.width) ||
-          Math.round(rect.width) ||
-          vbDims.width ||
-          100;
-
-        const height =
-          parseNumericDim(targetSvg.getAttribute("height")) ||
-          parseNumericDim(svg.style.height) ||
-          Math.round(rect.height) ||
-          vbDims.height ||
-          100;
-
-        const firstUseEl = svg.querySelector("use");
-        const firstUseHref = firstUseEl ? getUseRawHref(firstUseEl) : "";
-        const hashIdx = firstUseHref.indexOf("#");
-        const useSymbolName = hashIdx !== -1 ? firstUseHref.slice(hashIdx + 1) : "";
-
-        const rawName =
-          svg.getAttribute("id") ||
-          svg.getAttribute("aria-label") ||
-          svg.querySelector("title")?.textContent ||
-          useSymbolName ||
-          svg.getAttribute("data-icon") ||
-          "";
-
-        const fallback = resolved.isSprite ? `sprite-${index + 1}` : `svg-${index + 1}`;
-        const name = sanitizeName(rawName, fallback);
-        index++;
-
-        const usesCurrentColor = svgContent.includes("currentColor");
-        svgs.push({
-          id: `${resolved.isSprite ? "sprite" : "inline"}-${index}`,
-          name,
-          type: resolved.isSprite ? "sprite" : "inline",
-          content: svgContent,
-          width: Math.round(width * 100) / 100,
-          height: Math.round(height * 100) / 100,
-          viewBox,
-          size: estimateByteSize(svgContent),
-          computedColor: usesCurrentColor ? computed.color : ""
-        });
-      });
+      }
+    } catch {
+      // Ignore stage 1 error
     }
 
     // 1b. Unreferenced <symbol id="..."> definitions inside hidden spritesheets
-    for (const root of roots) {
-      root.querySelectorAll("svg symbol[id]").forEach((symbol) => {
-        const symId = symbol.getAttribute("id");
-        if (!symId || usedSymbolIds.has(symId)) return;
+    try {
+      for (const root of roots) {
+        safeQueryAll(root, "svg symbol[id]").forEach((symbol) => {
+          const symId = symbol.getAttribute("id");
+          if (!symId || usedSymbolIds.has(symId)) return;
 
-        const wrapperSvg = document.createElementNS(SVG_NS, "svg");
-        wrapperSvg.setAttribute("xmlns", SVG_NS);
-        const viewBox = symbol.getAttribute("viewBox") || "0 0 24 24";
-        wrapperSvg.setAttribute("viewBox", viewBox);
+          const wrapperSvg = document.createElementNS(SVG_NS, "svg");
+          wrapperSvg.setAttribute("xmlns", SVG_NS);
+          const viewBox = symbol.getAttribute("viewBox") || "0 0 24 24";
+          wrapperSvg.setAttribute("viewBox", viewBox);
 
-        const vbDims = parseViewBoxDims(viewBox);
-        const width = parseNumericDim(symbol.getAttribute("width")) || vbDims.width || 24;
-        const height = parseNumericDim(symbol.getAttribute("height")) || vbDims.height || 24;
-        wrapperSvg.setAttribute("width", String(width));
-        wrapperSvg.setAttribute("height", String(height));
+          const vbDims = parseViewBoxDims(viewBox);
+          const width = parseNumericDim(symbol.getAttribute("width")) || vbDims.width || 24;
+          const height = parseNumericDim(symbol.getAttribute("height")) || vbDims.height || 24;
+          wrapperSvg.setAttribute("width", String(width));
+          wrapperSvg.setAttribute("height", String(height));
 
-        Array.from(symbol.childNodes).forEach((child) => {
-          wrapperSvg.appendChild(document.importNode(child, true));
+          Array.from(symbol.childNodes).forEach((child) => {
+            wrapperSvg.appendChild(document.importNode(child, true));
+          });
+
+          const svgContent = serializeSvgElement(wrapperSvg);
+          index++;
+          svgs.push({
+            id: `sprite-${index}`,
+            name: sanitizeName(symId, `sprite-${index}`),
+            type: "sprite",
+            content: svgContent,
+            width,
+            height,
+            viewBox,
+            size: estimateByteSize(svgContent)
+          });
         });
-
-        const svgContent = serializeSvgElement(wrapperSvg);
-        index++;
-        svgs.push({
-          id: `sprite-${index}`,
-          name: sanitizeName(symId, `sprite-${index}`),
-          type: "sprite",
-          content: svgContent,
-          width,
-          height,
-          viewBox,
-          size: estimateByteSize(svgContent)
-        });
-      });
+      }
+    } catch {
+      // Ignore stage 1b error
     }
 
     // 1c. External <use> sprite files that could not be fetched/parsed inline (e.g. CORS)
-    for (const spriteUrl of failedSprites) {
-      index++;
-      svgs.push({
-        id: `sprite-${index}`,
-        name: nameFromUrl(spriteUrl, `sprite-${index}`),
-        type: "sprite",
-        url: spriteUrl,
-        width: 100,
-        height: 100,
-        size: 0
-      });
+    try {
+      for (const spriteUrl of failedSprites) {
+        index++;
+        svgs.push({
+          id: `sprite-${index}`,
+          name: nameFromUrl(spriteUrl, `sprite-${index}`),
+          type: "sprite",
+          url: spriteUrl,
+          width: 100,
+          height: 100,
+          size: 0
+        });
+      }
+    } catch {
+      // Ignore stage 1c error
     }
 
     // 2. <img>, <input type="image">, <picture>/<source>, and <svg><image> SVG sources
-    for (const root of roots) {
-      root.querySelectorAll('img, input[type="image"]').forEach((img) => {
-        const baseUri = getElementBaseUri(img);
-        const rawCandidates = [
-          img.currentSrc,
-          img.getAttribute("src"),
-          img.src,
-          img.getAttribute("data-src"),
-          img.getAttribute("data-lazy-src"),
-          img.getAttribute("data-original"),
-          img.getAttribute("data-url"),
-          img.getAttribute("data-svg"),
-          ...parseSrcsetUrls(img.getAttribute("srcset")),
-          ...parseSrcsetUrls(img.getAttribute("data-srcset"))
-        ];
+    try {
+      for (const root of roots) {
+        safeQueryAll(root, 'img, input[type="image"]').forEach((img) => {
+          const baseUri = getElementBaseUri(img);
+          const rawCandidates = [
+            img.currentSrc,
+            img.getAttribute("src"),
+            img.src,
+            img.getAttribute("data-src"),
+            img.getAttribute("data-lazy-src"),
+            img.getAttribute("data-original"),
+            img.getAttribute("data-url"),
+            img.getAttribute("data-svg"),
+            ...parseSrcsetUrls(img.getAttribute("srcset")),
+            ...parseSrcsetUrls(img.getAttribute("data-srcset"))
+          ];
 
-        const seenOnElement = new Set();
-        const rect = img.getBoundingClientRect ? img.getBoundingClientRect() : { width: 0, height: 0 };
-        const width =
-          img.naturalWidth ||
-          parseNumericDim(img.getAttribute("width")) ||
-          Math.round(rect.width) ||
-          img.width ||
-          100;
-        const height =
-          img.naturalHeight ||
-          parseNumericDim(img.getAttribute("height")) ||
-          Math.round(rect.height) ||
-          img.height ||
-          100;
+          const seenOnElement = new Set();
+          const rect = img.getBoundingClientRect ? img.getBoundingClientRect() : { width: 0, height: 0 };
+          const width =
+            img.naturalWidth ||
+            parseNumericDim(img.getAttribute("width")) ||
+            Math.round(rect.width) ||
+            img.width ||
+            100;
+          const height =
+            img.naturalHeight ||
+            parseNumericDim(img.getAttribute("height")) ||
+            Math.round(rect.height) ||
+            img.height ||
+            100;
 
-        const rawLabel =
-          cleanDescriptiveLabel(img.alt) ||
-          cleanDescriptiveLabel(img.getAttribute("aria-label")) ||
-          cleanDescriptiveLabel(img.getAttribute("title")) ||
-          "";
+          const rawLabel =
+            cleanDescriptiveLabel(img.alt) ||
+            cleanDescriptiveLabel(img.getAttribute("aria-label")) ||
+            cleanDescriptiveLabel(img.getAttribute("title")) ||
+            "";
 
-        const pictureEl = img.closest("picture");
-        let pictureSeen = pictureEl ? pictureImageUrls.get(pictureEl) : null;
-        if (pictureEl && !pictureSeen) {
-          pictureSeen = new Set();
-          pictureImageUrls.set(pictureEl, pictureSeen);
-        }
+          const pictureEl = img.closest("picture");
+          let pictureSeen = pictureEl ? pictureImageUrls.get(pictureEl) : null;
+          if (pictureEl && !pictureSeen) {
+            pictureSeen = new Set();
+            pictureImageUrls.set(pictureEl, pictureSeen);
+          }
 
-        for (const candidate of rawCandidates) {
-          const info = extractSvgUrlInfo(candidate, baseUri);
-          if (!info || seenOnElement.has(info.url)) continue;
-          seenOnElement.add(info.url);
-          if (pictureSeen) pictureSeen.add(info.url);
+          for (const candidate of rawCandidates) {
+            const info = extractSvgUrlInfo(candidate, baseUri);
+            if (!info || seenOnElement.has(info.url)) continue;
+            seenOnElement.add(info.url);
+            if (pictureSeen) pictureSeen.add(info.url);
+
+            index++;
+            const name = sanitizeName(rawLabel, nameFromUrl(info.url, `svg-image-${index}`));
+            const entry = {
+              id: `img-${index}`,
+              name,
+              type: "image",
+              url: info.url,
+              width,
+              height,
+              size: estimateDataUrlSize(info.url)
+            };
+            if (info.fallbackUrl && info.fallbackUrl !== info.url) {
+              entry.fallbackUrl = info.fallbackUrl;
+            }
+            svgs.push(entry);
+          }
+        });
+
+        safeQueryAll(root, "picture source, source[srcset], source[data-srcset], source[type]").forEach((source) => {
+          const baseUri = getElementBaseUri(source);
+          const forceSvgMime = /image\/svg\+xml/i.test(source.getAttribute("type") || "");
+          const pictureEl = source.closest("picture");
+          const pictureSeen = pictureEl ? pictureImageUrls.get(pictureEl) : null;
+          const seenOnElement = new Set();
+
+          const rawCandidates = [
+            ...parseSrcsetUrls(source.getAttribute("srcset")),
+            ...parseSrcsetUrls(source.getAttribute("data-srcset")),
+            source.getAttribute("src")
+          ];
+
+          for (const candidate of rawCandidates) {
+            const info = extractSvgUrlInfo(candidate, baseUri, { forceSvgMime });
+            if (!info || seenOnElement.has(info.url)) continue;
+            if (pictureSeen && pictureSeen.has(info.url)) continue;
+            seenOnElement.add(info.url);
+            if (pictureSeen) pictureSeen.add(info.url);
+
+            index++;
+            const entry = {
+              id: `img-${index}`,
+              name: nameFromUrl(info.url, `svg-source-${index}`),
+              type: "image",
+              url: info.url,
+              width: 100,
+              height: 100,
+              size: estimateDataUrlSize(info.url)
+            };
+            if (info.fallbackUrl && info.fallbackUrl !== info.url) {
+              entry.fallbackUrl = info.fallbackUrl;
+            }
+            svgs.push(entry);
+          }
+        });
+
+        safeQueryAll(root, "svg image").forEach((svgImg) => {
+          const baseUri = getElementBaseUri(svgImg);
+          const rawHref =
+            svgImg.getAttribute("href") ||
+            (typeof svgImg.getAttributeNS === "function" ? svgImg.getAttributeNS(XLINK_NS, "href") : "") ||
+            svgImg.getAttribute("xlink:href") ||
+            "";
+          const info = extractSvgUrlInfo(rawHref, baseUri);
+          if (!info) return;
 
           index++;
-          const name = sanitizeName(rawLabel, nameFromUrl(info.url, `svg-image-${index}`));
           const entry = {
             id: `img-${index}`,
-            name,
+            name: nameFromUrl(info.url, `svg-image-${index}`),
             type: "image",
             url: info.url,
-            width,
-            height,
+            width: parseNumericDim(svgImg.getAttribute("width")) || 100,
+            height: parseNumericDim(svgImg.getAttribute("height")) || 100,
             size: estimateDataUrlSize(info.url)
           };
           if (info.fallbackUrl && info.fallbackUrl !== info.url) {
             entry.fallbackUrl = info.fallbackUrl;
           }
           svgs.push(entry);
-        }
-      });
-
-      root.querySelectorAll('picture source, source[srcset], source[data-srcset], source[type="image/svg+xml"]').forEach((source) => {
-        const baseUri = getElementBaseUri(source);
-        const forceSvgMime = /image\/svg\+xml/i.test(source.getAttribute("type") || "");
-        const pictureEl = source.closest("picture");
-        const pictureSeen = pictureEl ? pictureImageUrls.get(pictureEl) : null;
-        const seenOnElement = new Set();
-
-        const rawCandidates = [
-          ...parseSrcsetUrls(source.getAttribute("srcset")),
-          ...parseSrcsetUrls(source.getAttribute("data-srcset")),
-          source.getAttribute("src")
-        ];
-
-        for (const candidate of rawCandidates) {
-          const info = extractSvgUrlInfo(candidate, baseUri, { forceSvgMime });
-          if (!info || seenOnElement.has(info.url)) continue;
-          if (pictureSeen && pictureSeen.has(info.url)) continue;
-          seenOnElement.add(info.url);
-          if (pictureSeen) pictureSeen.add(info.url);
-
-          index++;
-          const entry = {
-            id: `img-${index}`,
-            name: nameFromUrl(info.url, `svg-source-${index}`),
-            type: "image",
-            url: info.url,
-            width: 100,
-            height: 100,
-            size: estimateDataUrlSize(info.url)
-          };
-          if (info.fallbackUrl && info.fallbackUrl !== info.url) {
-            entry.fallbackUrl = info.fallbackUrl;
-          }
-          svgs.push(entry);
-        }
-      });
-
-      root.querySelectorAll("svg image").forEach((svgImg) => {
-        const baseUri = getElementBaseUri(svgImg);
-        const rawHref =
-          svgImg.getAttribute("href") ||
-          (typeof svgImg.getAttributeNS === "function" ? svgImg.getAttributeNS(XLINK_NS, "href") : "") ||
-          svgImg.getAttribute("xlink:href") ||
-          "";
-        const info = extractSvgUrlInfo(rawHref, baseUri);
-        if (!info) return;
-
-        index++;
-        const entry = {
-          id: `img-${index}`,
-          name: nameFromUrl(info.url, `svg-image-${index}`),
-          type: "image",
-          url: info.url,
-          width: parseNumericDim(svgImg.getAttribute("width")) || 100,
-          height: parseNumericDim(svgImg.getAttribute("height")) || 100,
-          size: estimateDataUrlSize(info.url)
-        };
-        if (info.fallbackUrl && info.fallbackUrl !== info.url) {
-          entry.fallbackUrl = info.fallbackUrl;
-        }
-        svgs.push(entry);
-      });
+        });
+      }
+    } catch {
+      // Ignore stage 2 error
     }
 
     // 3. <object> / <embed> / <iframe> SVGs
-    for (const root of roots) {
-      root.querySelectorAll("object, embed, iframe").forEach((obj) => {
-        const baseUri = getElementBaseUri(obj);
-        const forceSvgMime = /image\/svg\+xml/i.test(obj.getAttribute("type") || "");
-        const rawUrl = obj.getAttribute("data") || obj.getAttribute("src") || obj.data || obj.src || "";
-        const info = extractSvgUrlInfo(rawUrl, baseUri, { forceSvgMime });
-        if (!info) return;
-
-        index++;
-        const rawName =
-          cleanDescriptiveLabel(obj.getAttribute("title")) ||
-          cleanDescriptiveLabel(obj.getAttribute("aria-label")) ||
-          "";
-        const name = sanitizeName(rawName, nameFromUrl(info.url, `svg-object-${index}`));
-        const rect = obj.getBoundingClientRect ? obj.getBoundingClientRect() : { width: 0, height: 0 };
-
-        const entry = {
-          id: `obj-${index}`,
-          name,
-          type: "object",
-          url: info.url,
-          width: parseNumericDim(obj.getAttribute("width")) || Math.round(rect.width) || 100,
-          height: parseNumericDim(obj.getAttribute("height")) || Math.round(rect.height) || 100,
-          size: estimateDataUrlSize(info.url)
-        };
-        if (info.fallbackUrl && info.fallbackUrl !== info.url) {
-          entry.fallbackUrl = info.fallbackUrl;
-        }
-        svgs.push(entry);
-      });
-    }
-
-    // 3b. SVG <link rel="*icon*"> assets (grouped into at most best favicon + mask-icon)
-    let bestFavicon = null;
-    let bestMaskIcon = null;
-    for (const root of roots) {
-      root.querySelectorAll('link[rel*="icon" i][href]').forEach((link) => {
-        const rel = (link.getAttribute("rel") || "").toLowerCase();
-        const isMask = /\bmask-icon\b/.test(rel);
-        const forceSvgMime = /image\/svg\+xml/i.test(link.getAttribute("type") || "") || isMask;
-        const info = extractSvgUrlInfo(link.getAttribute("href"), getElementBaseUri(link), { forceSvgMime });
-        if (!info) return;
-
-        const area = parseIconSizeArea(link.getAttribute("sizes"));
-        if (isMask) {
-          if (!bestMaskIcon || area > bestMaskIcon.area) {
-            bestMaskIcon = { info, area };
-          }
-        } else if (!bestFavicon || area > bestFavicon.area) {
-          bestFavicon = { info, area };
-        }
-      });
-    }
-
-    if (bestFavicon) {
-      index++;
-      const entry = {
-        id: `img-${index}`,
-        name: nameFromUrl(bestFavicon.info.url, "favicon"),
-        type: "image",
-        url: bestFavicon.info.url,
-        width: 32,
-        height: 32,
-        size: estimateDataUrlSize(bestFavicon.info.url)
-      };
-      if (bestFavicon.info.fallbackUrl && bestFavicon.info.fallbackUrl !== bestFavicon.info.url) {
-        entry.fallbackUrl = bestFavicon.info.fallbackUrl;
-      }
-      svgs.push(entry);
-    }
-
-    if (bestMaskIcon && (!bestFavicon || bestMaskIcon.info.url !== bestFavicon.info.url)) {
-      index++;
-      const entry = {
-        id: `img-${index}`,
-        name: nameFromUrl(bestMaskIcon.info.url, "mask-icon"),
-        type: "image",
-        url: bestMaskIcon.info.url,
-        width: 32,
-        height: 32,
-        size: estimateDataUrlSize(bestMaskIcon.info.url)
-      };
-      if (bestMaskIcon.info.fallbackUrl && bestMaskIcon.info.fallbackUrl !== bestMaskIcon.info.url) {
-        entry.fallbackUrl = bestMaskIcon.info.fallbackUrl;
-      }
-      svgs.push(entry);
-    }
-
-    // 4. CSS background-image, mask-image, list-style-image, border-image-source & ::before/::after
-    for (const root of roots) {
-      const allElements = root.querySelectorAll("*");
-      for (let i = 0; i < allElements.length; i++) {
-        const el = allElements[i];
-        if (NON_VISUAL_TAGS.has(el.tagName) || el instanceof SVGElement) {
-          continue;
-        }
-
-        const win = getElementWindow(el);
-        const baseUri = getElementBaseUri(el);
-        const style = win.getComputedStyle(el);
-        const rawCssUrls = [];
-
-        const mainProps = [
-          style.backgroundImage,
-          style.maskImage || style.webkitMaskImage,
-          style.listStyleImage,
-          style.borderImageSource
-        ];
-        for (const propVal of mainProps) {
-          rawCssUrls.push(...extractCssUrls(propVal));
-        }
-
-        for (const pseudo of ["::before", "::after"]) {
-          const pStyle = win.getComputedStyle(el, pseudo);
-          if (!pStyle || !pStyle.content || pStyle.content === "none" || pStyle.content === "normal") {
-            continue;
-          }
-          const pseudoProps = [
-            pStyle.backgroundImage,
-            pStyle.maskImage || pStyle.webkitMaskImage,
-            pStyle.listStyleImage,
-            pStyle.borderImageSource
-          ];
-          if (pStyle.content.includes("url(")) {
-            pseudoProps.push(pStyle.content);
-          }
-          for (const propVal of pseudoProps) {
-            rawCssUrls.push(...extractCssUrls(propVal));
-          }
-        }
-
-        if (!rawCssUrls.length) continue;
-
-        const seenOnElement = new Set();
-        const rawLabel =
-          cleanDescriptiveLabel(el.getAttribute("id")) ||
-          cleanDescriptiveLabel(el.getAttribute("aria-label")) ||
-          "";
-
-        for (const rawUrl of rawCssUrls) {
-          const info = extractSvgUrlInfo(rawUrl, baseUri);
-          if (!info || seenOnElement.has(info.url)) continue;
-          seenOnElement.add(info.url);
+    try {
+      for (const root of roots) {
+        safeQueryAll(root, "object, embed, iframe").forEach((obj) => {
+          const baseUri = getElementBaseUri(obj);
+          const forceSvgMime = /image\/svg\+xml/i.test(obj.getAttribute("type") || "");
+          const rawUrl = obj.getAttribute("data") || obj.getAttribute("src") || obj.data || obj.src || "";
+          const info = extractSvgUrlInfo(rawUrl, baseUri, { forceSvgMime });
+          if (!info) return;
 
           index++;
-          const name = sanitizeName(rawLabel, nameFromUrl(info.url, `svg-bg-${index}`));
+          const rawName =
+            cleanDescriptiveLabel(obj.getAttribute("title")) ||
+            cleanDescriptiveLabel(obj.getAttribute("aria-label")) ||
+            "";
+          const name = sanitizeName(rawName, nameFromUrl(info.url, `svg-object-${index}`));
+          const rect = obj.getBoundingClientRect ? obj.getBoundingClientRect() : { width: 0, height: 0 };
+
           const entry = {
-            id: `bg-${index}`,
+            id: `obj-${index}`,
             name,
-            type: "background",
+            type: "object",
             url: info.url,
-            width: el.offsetWidth || 100,
-            height: el.offsetHeight || 100,
+            width: parseNumericDim(obj.getAttribute("width")) || Math.round(rect.width) || 100,
+            height: parseNumericDim(obj.getAttribute("height")) || Math.round(rect.height) || 100,
             size: estimateDataUrlSize(info.url)
           };
           if (info.fallbackUrl && info.fallbackUrl !== info.url) {
             entry.fallbackUrl = info.fallbackUrl;
           }
           svgs.push(entry);
+        });
+      }
+    } catch {
+      // Ignore stage 3 error
+    }
+
+    // 3b. SVG <link rel="*icon*"> assets (grouped into at most best favicon + mask-icon)
+    try {
+      let bestFavicon = null;
+      let bestMaskIcon = null;
+      for (const root of roots) {
+        safeQueryAll(root, "link[rel][href]").forEach((link) => {
+          const rel = (link.getAttribute("rel") || "").toLowerCase();
+          if (!rel.includes("icon")) return;
+          const isMask = /\bmask-icon\b/.test(rel);
+          const forceSvgMime = /image\/svg\+xml/i.test(link.getAttribute("type") || "") || isMask;
+          const info = extractSvgUrlInfo(link.getAttribute("href"), getElementBaseUri(link), { forceSvgMime });
+          if (!info) return;
+
+          const area = parseIconSizeArea(link.getAttribute("sizes"));
+          if (isMask) {
+            if (!bestMaskIcon || area > bestMaskIcon.area) {
+              bestMaskIcon = { info, area };
+            }
+          } else if (!bestFavicon || area > bestFavicon.area) {
+            bestFavicon = { info, area };
+          }
+        });
+      }
+
+      if (bestFavicon) {
+        index++;
+        const entry = {
+          id: `img-${index}`,
+          name: nameFromUrl(bestFavicon.info.url, "favicon"),
+          type: "image",
+          url: bestFavicon.info.url,
+          width: 32,
+          height: 32,
+          size: estimateDataUrlSize(bestFavicon.info.url)
+        };
+        if (bestFavicon.info.fallbackUrl && bestFavicon.info.fallbackUrl !== bestFavicon.info.url) {
+          entry.fallbackUrl = bestFavicon.info.fallbackUrl;
+        }
+        svgs.push(entry);
+      }
+
+      if (bestMaskIcon && (!bestFavicon || bestMaskIcon.info.url !== bestFavicon.info.url)) {
+        index++;
+        const entry = {
+          id: `img-${index}`,
+          name: nameFromUrl(bestMaskIcon.info.url, "mask-icon"),
+          type: "image",
+          url: bestMaskIcon.info.url,
+          width: 32,
+          height: 32,
+          size: estimateDataUrlSize(bestMaskIcon.info.url)
+        };
+        if (bestMaskIcon.info.fallbackUrl && bestMaskIcon.info.fallbackUrl !== bestMaskIcon.info.url) {
+          entry.fallbackUrl = bestMaskIcon.info.fallbackUrl;
+        }
+        svgs.push(entry);
+      }
+    } catch {
+      // Ignore stage 3b error
+    }
+
+    // 4. CSS background-image, mask-image, list-style-image, border-image-source & ::before/::after
+    try {
+      for (const root of roots) {
+        const allElements = safeQueryAll(root, "*");
+        for (let i = 0; i < allElements.length; i++) {
+          const el = allElements[i];
+          const upperTag = (el.tagName || "").toUpperCase();
+          if (NON_VISUAL_TAGS.has(upperTag) || el.namespaceURI === SVG_NS) {
+            continue;
+          }
+
+          const win = getElementWindow(el);
+          const baseUri = getElementBaseUri(el);
+          const style = safeGetComputedStyle(win, el);
+          if (!style) continue;
+
+          const rawCssUrls = [];
+          const mainProps = [
+            style.backgroundImage,
+            style.maskImage || style.webkitMaskImage,
+            style.listStyleImage,
+            style.borderImageSource
+          ];
+          for (const propVal of mainProps) {
+            rawCssUrls.push(...extractCssUrls(propVal));
+          }
+
+          if (style.display !== "none") {
+            for (const pseudo of ["::before", "::after"]) {
+              const pStyle = safeGetComputedStyle(win, el, pseudo);
+              if (!pStyle || !pStyle.content || pStyle.content === "none" || pStyle.content === "normal") {
+                continue;
+              }
+              const pseudoProps = [
+                pStyle.backgroundImage,
+                pStyle.maskImage || pStyle.webkitMaskImage,
+                pStyle.listStyleImage,
+                pStyle.borderImageSource
+              ];
+              if (pStyle.content.includes("url(")) {
+                pseudoProps.push(pStyle.content);
+              }
+              for (const propVal of pseudoProps) {
+                rawCssUrls.push(...extractCssUrls(propVal));
+              }
+            }
+          }
+
+          if (!rawCssUrls.length) continue;
+
+          const seenOnElement = new Set();
+          const rawLabel =
+            cleanDescriptiveLabel(el.getAttribute("id")) ||
+            cleanDescriptiveLabel(el.getAttribute("aria-label")) ||
+            "";
+
+          for (const rawUrl of rawCssUrls) {
+            const info = extractSvgUrlInfo(rawUrl, baseUri);
+            if (!info || seenOnElement.has(info.url)) continue;
+            seenOnElement.add(info.url);
+
+            index++;
+            const name = sanitizeName(rawLabel, nameFromUrl(info.url, `svg-bg-${index}`));
+            const entry = {
+              id: `bg-${index}`,
+              name,
+              type: "background",
+              url: info.url,
+              width: el.offsetWidth || 100,
+              height: el.offsetHeight || 100,
+              size: estimateDataUrlSize(info.url)
+            };
+            if (info.fallbackUrl && info.fallbackUrl !== info.url) {
+              entry.fallbackUrl = info.fallbackUrl;
+            }
+            svgs.push(entry);
+          }
         }
       }
+    } catch {
+      // Ignore stage 4 error
     }
 
     // 5. Deduplicate while tracking occurrence counts

@@ -1065,7 +1065,7 @@ document.addEventListener("DOMContentLoaded", () => {
       updateSelectionBadge();
       renderCards();
 
-      if (data.lastError && !allSvgs.length) {
+      if (data.lastError) {
         showToast(data.lastError, true);
       }
     } catch (error) {
@@ -1263,7 +1263,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     chrome.storage.onChanged.addListener((changes, area) => {
-      if (area === "local" && changes.svgs) {
+      if (area === "local" && (changes.svgs || changes.scanning || changes.lastError || changes.updatedAt)) {
         loadResultsFromStorage();
       }
     });

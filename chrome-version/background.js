@@ -60,29 +60,53 @@ function safeNotifyResults(payload) {
 
 // Extension icon click -> scan active tab and open/focus studio results
 chrome.action.onClicked.addListener(async (tab) => {
+  isProcessingSVGs = false;
+
   if (!tab || isRestrictedUrl(tab.url)) {
-    console.warn("Cannot run on restricted page:", tab?.url);
+    if (!tab?.url?.includes("results.html")) {
+      await openOrFocusResultsTab(false);
+    }
     return;
   }
 
   try {
+    const scanStartedAt = Date.now();
     await chrome.storage.local.set({
       scanning: true,
       lastError: null,
       sourceTabId: tab.id,
       pageUrl: tab.url,
-      pageTitle: tab.title || ""
+      pageTitle: tab.title || "",
+      updatedAt: scanStartedAt
     });
 
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       files: ["content-script.js"]
     });
+
+    // Safety fallback if content-script fails silently or hangs
+    setTimeout(async () => {
+      try {
+        const state = await chrome.storage.local.get(["scanning", "updatedAt"]);
+        if (state?.scanning && state.updatedAt === scanStartedAt) {
+          await chrome.storage.local.set({
+            scanning: false,
+            lastError: "Scan timed out. Please click Rescan.",
+            updatedAt: Date.now()
+          });
+          await openOrFocusResultsTab(true);
+        }
+      } catch {
+        // Ignore timeout fallback errors
+      }
+    }, 2000);
   } catch (error) {
     console.error("Error executing content script:", error);
     await chrome.storage.local.set({
       scanning: false,
-      lastError: `Cannot access this page: ${error.message}`
+      lastError: `Cannot access this page: ${error.message}`,
+      updatedAt: Date.now()
     });
     await openOrFocusResultsTab(true);
     safeNotifyResults({
@@ -111,16 +135,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.storage.local
       .set(payload)
       .then(() => openOrFocusResultsTab(true))
-      .then(() => {
-        isProcessingSVGs = false;
-      })
       .catch((error) => {
-        isProcessingSVGs = false;
         console.error("Storage or tab error:", error);
         safeNotifyResults({
           action: "showError",
           message: `Failed to process SVGs: ${error.message}`
         });
+      })
+      .finally(() => {
+        isProcessingSVGs = false;
       });
     return false;
   }
@@ -255,15 +278,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.action === "error") {
+    isProcessingSVGs = false;
     console.error("Content script error:", message.message);
-    chrome.storage.local.set({
-      scanning: false,
-      lastError: message.message || "Unknown error"
-    });
-    safeNotifyResults({
-      action: "showError",
-      message: message.message
-    });
+    chrome.storage.local
+      .set({
+        svgs: [],
+        scanning: false,
+        lastError: message.message || "Unknown error",
+        updatedAt: Date.now()
+      })
+      .then(() => openOrFocusResultsTab(true))
+      .then(() => {
+        safeNotifyResults({
+          action: "showError",
+          message: message.message
+        });
+      })
+      .catch(() => {
+        // Ignore tab notification failures
+      });
   }
 
   return false;
