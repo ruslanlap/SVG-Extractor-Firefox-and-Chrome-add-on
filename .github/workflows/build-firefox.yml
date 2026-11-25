@@ -46,18 +46,11 @@ jobs:
           cp -r icons firefox-build/
           cp -r lib firefox-build/
           cp -r fonts firefox-build/ || true
-          cp -r data firefox-build/ || true
 
-      - name: Update manifest for Firefox
+      - name: Validate extension with addons-linter
         run: |
           cd firefox-build
-          # Ensure manifest uses browser.* API
-          sed -i 's/"manifest_version": 3/"manifest_version": 2/g' manifest.json || true
-
-      - name: Validate extension (optional)
-        run: |
-          cd firefox-build
-          web-ext lint --warnings-as-errors=false || echo "Validation skipped"
+          npx --yes addons-linter . --warnings-as-errors=false || echo "Validation finished"
         continue-on-error: true
 
       - name: Get version from manifest

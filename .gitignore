@@ -1,0 +1,6 @@
+node_modules/
+dist/
+releases/
+firefox-build/
+chrome-build/
+*.zip

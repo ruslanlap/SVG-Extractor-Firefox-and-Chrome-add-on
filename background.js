@@ -26,9 +26,10 @@ function getResultsUrl() {
 
 async function openOrFocusResultsTab(notifyUpdate = false) {
   const resultsUrl = getResultsUrl();
-  const existingTabs = await chrome.tabs.query({ url: `${resultsUrl}*` });
+  const allTabs = await chrome.tabs.query({});
+  const existingTabs = allTabs.filter((t) => t.url && t.url.startsWith(resultsUrl));
 
-  if (existingTabs && existingTabs.length > 0) {
+  if (existingTabs.length > 0) {
     const targetTab = existingTabs[0];
     await chrome.tabs.update(targetTab.id, { active: true });
     if (targetTab.windowId !== undefined) {
@@ -298,13 +299,40 @@ function buildSvgFilename(svgData) {
   return `${cleanName}-${timestamp}.svg`;
 }
 
-function downloadViaDataUrl(svgText, filename) {
+function canUseObjectUrl() {
+  return typeof URL !== "undefined" && typeof URL.createObjectURL === "function";
+}
+
+function downloadSvgContent(svgText, filename) {
+  if (canUseObjectUrl()) {
+    const blob = new Blob([svgText], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(blob);
+    return chrome.downloads
+      .download({ url, filename, saveAs: false })
+      .then((downloadId) => {
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+        return downloadId;
+      })
+      .catch((err) => {
+        URL.revokeObjectURL(url);
+        throw err;
+      });
+  }
+
   const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgText)}`;
   return chrome.downloads.download({
     url: dataUrl,
     filename,
     saveAs: false
   });
+}
+
+function decodeSvgDataUrl(dataUrl) {
+  const commaIdx = dataUrl.indexOf(",");
+  if (commaIdx === -1) return "";
+  const meta = dataUrl.slice(0, commaIdx);
+  const payload = dataUrl.slice(commaIdx + 1);
+  return meta.includes(";base64") ? atob(payload) : decodeURIComponent(payload);
 }
 
 function downloadSVG(svgData) {
@@ -317,32 +345,21 @@ function downloadSVG(svgData) {
         if (!svgContent.startsWith("<?xml") && !svgContent.startsWith("<svg")) {
           svgContent = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n${svgContent}`;
         }
-
-        if (typeof URL !== "undefined" && typeof URL.createObjectURL === "function") {
-          const blob = new Blob([svgContent], { type: "image/svg+xml" });
-          const url = URL.createObjectURL(blob);
-          chrome.downloads
-            .download({ url, filename, saveAs: false })
-            .then((downloadId) => {
-              setTimeout(() => URL.revokeObjectURL(url), 1500);
-              resolve(downloadId);
-            })
-            .catch(() => {
-              URL.revokeObjectURL(url);
-              downloadViaDataUrl(svgContent, filename).then(resolve).catch(reject);
-            });
-        } else {
-          downloadViaDataUrl(svgContent, filename).then(resolve).catch(reject);
-        }
+        downloadSvgContent(svgContent, filename).then(resolve).catch(reject);
         return;
       }
 
       if (svgData?.url) {
         if (svgData.url.startsWith("data:")) {
-          chrome.downloads
-            .download({ url: svgData.url, filename, saveAs: false })
-            .then(resolve)
-            .catch(reject);
+          if (canUseObjectUrl() && svgData.url.startsWith("data:image/svg+xml")) {
+            const decoded = decodeSvgDataUrl(svgData.url);
+            downloadSvgContent(decoded, filename).then(resolve).catch(reject);
+          } else {
+            chrome.downloads
+              .download({ url: svgData.url, filename, saveAs: false })
+              .then(resolve)
+              .catch(reject);
+          }
           return;
         }
 
@@ -360,7 +377,7 @@ function downloadSVG(svgData) {
             }
             return response.text();
           })
-          .then((svgText) => downloadViaDataUrl(svgText, filename))
+          .then((svgText) => downloadSvgContent(svgText, filename))
           .then(resolve)
           .catch(() => {
             chrome.downloads
@@ -380,9 +397,12 @@ function downloadSVG(svgData) {
 
 function downloadSVGDirect(svg, filename) {
   if (svg?.content) {
-    return downloadViaDataUrl(svg.content, filename);
+    return downloadSvgContent(svg.content, filename);
   }
   if (svg?.url) {
+    if (canUseObjectUrl() && svg.url.startsWith("data:image/svg+xml")) {
+      return downloadSvgContent(decodeSvgDataUrl(svg.url), filename);
+    }
     return chrome.downloads.download({
       url: svg.url,
       filename,

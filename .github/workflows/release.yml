@@ -132,7 +132,6 @@ jobs:
           cp -r icons firefox-build/
           cp -r lib firefox-build/
           cp -r fonts firefox-build/ || true
-          cp -r data firefox-build/ || true
 
       - name: Build ZIP
         run: |
@@ -175,7 +174,7 @@ jobs:
           cp -r icons chrome-build/
           cp -r lib chrome-build/
           cp -r fonts chrome-build/ || true
-          cp -r data chrome-build/ || true
+          jq 'del(.background.scripts, .browser_specific_settings)' chrome-build/manifest.json > chrome-build/manifest.tmp && mv chrome-build/manifest.tmp chrome-build/manifest.json
 
       - name: Create ZIP
         run: |

@@ -42,7 +42,7 @@ jobs:
           cp -r icons chrome-build/
           cp -r lib chrome-build/
           cp -r fonts chrome-build/ || true
-          cp -r data chrome-build/ || true
+          jq 'del(.background.scripts, .browser_specific_settings)' chrome-build/manifest.json > chrome-build/manifest.tmp && mv chrome-build/manifest.tmp chrome-build/manifest.json
 
       - name: Validate Chrome manifest
         run: |

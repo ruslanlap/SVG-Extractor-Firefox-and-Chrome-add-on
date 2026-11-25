@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SVG Extractor Pro",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Finds, inspects, and exports SVG images from web pages",
   "permissions": [
     "activeTab",
@@ -14,7 +14,10 @@
     "<all_urls>"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "scripts": [
+      "background.js"
+    ]
   },
   "action": {
     "default_title": "Find SVG on the page",
@@ -30,6 +33,17 @@
     "32": "icons/icon32.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{541c5500-f82b-4b65-8e8e-55e4b7d934c2}",
+      "strict_min_version": "109.0",
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ]
+      }
+    }
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
