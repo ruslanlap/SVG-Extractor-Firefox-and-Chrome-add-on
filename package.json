@@ -1,6 +1,6 @@
 {
   "name": "workspace",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Every new repl comes with a `.replit` and a `replit.nix` file that let you configure your repl to do just about anything in any language!",
   "main": "background.js",
   "directories": {
