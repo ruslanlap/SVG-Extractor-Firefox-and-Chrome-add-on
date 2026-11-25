@@ -80,10 +80,7 @@ chrome.action.onClicked.addListener(async (tab) => {
       updatedAt: scanStartedAt
     });
 
-    await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      files: ["content-script.js"]
-    });
+    await injectScanner(tab.id);
 
     // Safety fallback if content-script fails silently or hangs
     setTimeout(async () => {
@@ -116,7 +113,7 @@ chrome.action.onClicked.addListener(async (tab) => {
   }
 });
 
-// Android may discard an inactive source tab. Re-activate and retry injection once.
+// Desktop and mobile browsers may discard inactive tabs. Retry injection once.
 async function injectScanner(tabId) {
   try {
     await chrome.scripting.executeScript({
@@ -133,7 +130,7 @@ async function injectScanner(tabId) {
       if (tab.windowId !== undefined) {
         try { await chrome.windows.update(tab.windowId, { focused: true }); } catch {}
       }
-      // Give Firefox Android time to restore a discarded tab.
+      // Give the browser time to restore a discarded tab.
       await new Promise((resolve) => setTimeout(resolve, 500));
       await chrome.scripting.executeScript({
         target: { tabId },
