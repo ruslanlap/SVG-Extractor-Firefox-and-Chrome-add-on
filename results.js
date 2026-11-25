@@ -1075,16 +1075,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function triggerRescan() {
+  async function triggerRescan() {
     rescanBtn.disabled = true;
-    chrome.runtime.sendMessage({ action: "rescanSourceTab", tabId: sourceTabId }, (res) => {
-      rescanBtn.disabled = false;
-      if (chrome.runtime.lastError || !res?.ok) {
+    try {
+      const res = await chrome.runtime.sendMessage({
+        action: "rescanSourceTab",
+        tabId: sourceTabId
+      });
+      if (!res?.ok) {
         showToast(res?.error || t("toastRescanErr"), true);
         return;
       }
       showToast(t("toastRescanOk"));
-    });
+    } catch (error) {
+      showToast(error?.message || t("toastRescanErr"), true);
+    } finally {
+      rescanBtn.disabled = false;
+    }
   }
 
   // Event Listeners

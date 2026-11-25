@@ -80,10 +80,7 @@ chrome.action.onClicked.addListener(async (tab) => {
       updatedAt: scanStartedAt
     });
 
-    await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      files: ["content-script.js"]
-    });
+    await injectScanner(tab.id);
 
     // Safety fallback if content-script fails silently or hangs
     setTimeout(async () => {
@@ -115,6 +112,36 @@ chrome.action.onClicked.addListener(async (tab) => {
     });
   }
 });
+
+// Desktop and mobile browsers may discard inactive tabs. Retry injection once.
+async function injectScanner(tabId) {
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      files: ["content-script.js"]
+    });
+  } catch (firstError) {
+    const original = firstError?.message || String(firstError);
+    console.warn("[SVG Extractor] Initial script injection failed:", original);
+    const tab = await chrome.tabs.get(tabId);
+    if (isRestrictedUrl(tab?.url)) throw firstError;
+    try {
+      await chrome.tabs.update(tabId, { active: true });
+      if (tab.windowId !== undefined) {
+        try { await chrome.windows.update(tab.windowId, { focused: true }); } catch {}
+      }
+      // Give the browser time to restore a discarded tab.
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      await chrome.scripting.executeScript({
+        target: { tabId },
+        files: ["content-script.js"]
+      });
+    } catch (retryError) {
+      console.error("[SVG Extractor] Retry injection failed:", retryError);
+      throw new Error(`Cannot scan source tab: ${retryError?.message || original}. Open the page and retry.`);
+    }
+  }
+}
 
 // Message handling between content-script, popup, and results page
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -179,21 +206,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           lastError: null,
           sourceTabId: targetTab.id,
           pageUrl: targetTab.url,
-          pageTitle: targetTab.title || ""
+          pageTitle: targetTab.title || "",
+          updatedAt: Date.now()
         });
 
-        await chrome.scripting.executeScript({
-          target: { tabId: targetTab.id },
-          files: ["content-script.js"]
-        });
+        await injectScanner(targetTab.id);
 
         sendResponse({ ok: true, tabId: targetTab.id });
       } catch (error) {
+        const message = error?.message || String(error);
         await chrome.storage.local.set({
           scanning: false,
-          lastError: error.message
+          lastError: message,
+          updatedAt: Date.now()
         });
-        sendResponse({ ok: false, error: error.message });
+        sendResponse({ ok: false, error: message });
       }
     })();
     return true;

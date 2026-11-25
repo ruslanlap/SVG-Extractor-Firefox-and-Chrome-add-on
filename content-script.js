@@ -829,6 +829,7 @@
     try {
       for (const root of roots) {
         safeQueryAll(root, 'img, input[type="image"]').forEach((img) => {
+          try {
           const baseUri = getElementBaseUri(img);
           const rawCandidates = [
             img.currentSrc,
@@ -893,9 +894,13 @@
             }
             svgs.push(entry);
           }
+          } catch (error) {
+            console.warn("[SVG Extractor] Skipping invalid image element:", error);
+          }
         });
 
         safeQueryAll(root, "picture source, source[srcset], source[data-srcset], source[type]").forEach((source) => {
+          try {
           const baseUri = getElementBaseUri(source);
           const forceSvgMime = /image\/svg\+xml/i.test(source.getAttribute("type") || "");
           const pictureEl = source.closest("picture");
@@ -930,9 +935,13 @@
             }
             svgs.push(entry);
           }
+          } catch (error) {
+            console.warn("[SVG Extractor] Skipping invalid picture source:", error);
+          }
         });
 
         safeQueryAll(root, "svg image").forEach((svgImg) => {
+          try {
           const baseUri = getElementBaseUri(svgImg);
           const rawHref =
             svgImg.getAttribute("href") ||
@@ -956,10 +965,13 @@
             entry.fallbackUrl = info.fallbackUrl;
           }
           svgs.push(entry);
+          } catch (error) {
+            console.warn("[SVG Extractor] Skipping invalid SVG image:", error);
+          }
         });
       }
-    } catch {
-      // Ignore stage 2 error
+    } catch (error) {
+      console.warn("[SVG Extractor] Image scanning stage failed:", error);
     }
 
     // 3. <object> / <embed> / <iframe> SVGs
@@ -1056,8 +1068,8 @@
         }
         svgs.push(entry);
       }
-    } catch {
-      // Ignore stage 3b error
+    } catch (error) {
+      console.warn("[SVG Extractor] Icon scanning failed:", error);
     }
 
     // 4. CSS background-image, mask-image, list-style-image, border-image-source & ::before/::after
@@ -1139,8 +1151,8 @@
           }
         }
       }
-    } catch {
-      // Ignore stage 4 error
+    } catch (error) {
+      console.warn("[SVG Extractor] CSS SVG scanning failed:", error);
     }
 
     // 5. Deduplicate while tracking occurrence counts
