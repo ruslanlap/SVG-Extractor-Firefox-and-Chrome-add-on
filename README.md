@@ -9,7 +9,7 @@
 
   [![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-4285F4?style=for-the-badge&logo=google-chrome&logoColor=white)](#)
   [![Firefox Add-on](https://img.shields.io/badge/Firefox-Add--on-FF7139?style=for-the-badge&logo=firefox-browser&logoColor=white)](https://addons.mozilla.org/firefox/addon/svg-extractor-pro/)
-  [![Version](https://img.shields.io/badge/Version-1.1.1-blue?style=for-the-badge)](https://github.com/ruslanlap/SVG-Extractor-Firefox-add-on/releases)
+  [![Version](https://img.shields.io/badge/Version-1.2.0-blue?style=for-the-badge)](https://github.com/ruslanlap/SVG-Extractor-Firefox-add-on/releases)
   [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
   ![Firefox Build](https://github.com/ruslanlap/SVG-Extractor-Firefox-add-on/actions/workflows/build-firefox.yml/badge.svg)
@@ -17,24 +17,24 @@
   ![Validate](https://github.com/ruslanlap/SVG-Extractor-Firefox-add-on/actions/workflows/validate.yml/badge.svg)
 </div>
 
-> **✨ Тепер доступно для Google Chrome!** Це робоча версія для Chrome з повною підтримкою Manifest V3.
+> **✨ Оновлення v1.2.0 — Vector Studio UI!** Повністю оновлений дизайн у стилі *Quiet Precision Vector Studio*, підтримка `<use>` SVG-спрайтів та CSS-масок, миттєвий пошук і фільтрація, перемикач фону для контрасту, експорт PNG у 1×/2×/4× та прискорене паралельне пакування у ZIP.
 
 ## 🚀 Features
 
-- **Comprehensive SVG Detection**: Finds SVGs in various formats including inline SVGs, image tags, objects, embeds, and even CSS backgrounds
-- **PNG Export**: Export SVGs as PNG files
-- **Modern User Interface**: Clean, responsive design with both light and dark mode support
-- **Batch Download**: Download all SVGs at once as a ZIP file
-- **Individual Downloads**: Download specific SVGs as needed
-- **Preview Functionality**: View SVGs before downloading
-- **Multilingual Support**: Available in English and Ukrainian
-- **Copy SVG Code**: Copy SVG source code directly to clipboard
+- **Comprehensive SVG Detection**: Finds inline `<svg>` elements, resolves `<use>` sprite `<symbol>` references, `<img>` & `<picture>` sources, `<object>`, `<embed>`, CSS `background-image`, and `mask-image` SVGs
+- **Vector Studio Workspace**: Clean, precision UI with Dark (`#0B0C0F`) and Warm Light (`#FAF8F5`) themes, `Onest` & `JetBrains Mono` typography, and zero external requests
+- **Instant Search, Filtering & Sorting**: Filter by `Inline`, `Sprite`, `Image`, or `Background`, search by name/viewBox/dimensions (`/` shortcut), and sort by page order, name, dimensions, or file size
+- **Contrast Canvas Backdrops**: Switch specimen preview backdrops between `Grid`, `Dark`, `Light`, and `Checker` for clear visibility of light or dark icons
+- **High-DPI PNG Export**: Export any SVG (inline, sprite, or image URL) as crisp `1×`, `2×`, or `4×` PNG
+- **Interactive Source Inspector**: View formatted XML source, copy SVG markup or Data URI with one click
+- **Selective & Concurrent ZIP Export**: Select specific vectors or download all as a ZIP archive with concurrent fetching and clean filename deduplication
+- **Multilingual Support**: Seamless `EN` / `UA` switcher with persistent preferences
 
 ## 📸 Screenshots
 
 <div align="center">
-  <img src="data/header1.png" alt="SVG Extractor Pro Screenshot 1" width="400">
-  <img src="data/header2.png" alt="SVG Extractor Pro Screenshot 2" width="400">
+  <img src="data/header1.png" alt="SVG Extractor Pro — Dark Vector Studio (EN)" width="420">
+  <img src="data/header2.png" alt="SVG Extractor Pro — Warm Light Vector Studio & Inspector (UA)" width="420">
 </div>
 
 ## 📋 How It Works

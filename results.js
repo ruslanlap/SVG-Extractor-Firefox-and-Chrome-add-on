@@ -1,1398 +1,1246 @@
-// results.js - Вдосконалена версія
-document.addEventListener('DOMContentLoaded', function() {
-  const contentDiv = document.getElementById('content');
-  const loadingDiv = document.getElementById('loading');
-  const noSvgDiv = document.getElementById('no-svg');
-  const themeToggle = document.getElementById('theme-toggle');
-  const themeIconLight = document.getElementById('theme-icon-light');
-  const themeIconDark = document.getElementById('theme-icon-dark');
-  const langToggleEn = document.getElementById('lang-toggle-en');
-  const langToggleUk = document.getElementById('lang-toggle-uk');
-  const pageTitle = document.getElementById('page-title');
-  const pageSubtitle = document.getElementById('page-subtitle');
-  const downloadAllBtn = document.getElementById('download-all-btn');
-  const downloadAllText = document.getElementById('download-all-text');
-  const svgNS = "http://www.w3.org/2000/svg";
+// results.js - SVG Extractor Pro Studio Workspace
+document.addEventListener("DOMContentLoaded", () => {
+  const SVG_NS = "http://www.w3.org/2000/svg";
 
-  // Translations with enhanced content
+  // Elements
+  const contentDiv = document.getElementById("content");
+  const loadingDiv = document.getElementById("loading");
+  const loadingText = document.getElementById("loading-text");
+  const noSvgDiv = document.getElementById("no-svg");
+  const emptyTitle = document.getElementById("empty-title");
+  const emptyDesc = document.getElementById("empty-desc");
+  const emptyRescanBtn = document.getElementById("empty-rescan-btn");
+  const toolbarDiv = document.getElementById("studio-toolbar");
+
+  const themeToggle = document.getElementById("theme-toggle");
+  const themeIconLight = document.getElementById("theme-icon-light");
+  const themeIconDark = document.getElementById("theme-icon-dark");
+  const langToggleEn = document.getElementById("lang-toggle-en");
+  const langToggleUk = document.getElementById("lang-toggle-uk");
+
+  const pageTitle = document.getElementById("page-title");
+  const pageSubtitle = document.getElementById("page-subtitle");
+  const heroKicker = document.getElementById("hero-kicker");
+  const headerCoffeeText = document.getElementById("header-coffee-text");
+  const rescanBtn = document.getElementById("rescan-btn");
+  const rescanLabel = document.getElementById("rescan-label");
+  const downloadAllBtn = document.getElementById("download-all-btn");
+  const downloadAllText = document.getElementById("download-all-text");
+  const sourcePill = document.getElementById("source-pill");
+  const sourceDomain = document.getElementById("source-domain");
+  const footerDesc = document.getElementById("footer-desc");
+
+  const statTotal = document.getElementById("stat-total");
+  const statInline = document.getElementById("stat-inline");
+  const statSprite = document.getElementById("stat-sprite");
+  const statImage = document.getElementById("stat-image");
+  const statBg = document.getElementById("stat-bg");
+
+  const searchInput = document.getElementById("search-input");
+  const searchClear = document.getElementById("search-clear");
+  const sortSelect = document.getElementById("sort-select");
+  const filterTabs = document.querySelectorAll(".filter-tab");
+  const backdropBtns = document.querySelectorAll(".backdrop-btn");
+  const selectAllCheckbox = document.getElementById("select-all-checkbox");
+  const selectAllText = document.getElementById("select-all-text");
+  const selectionBadge = document.getElementById("selection-badge");
+
+  // Modal Elements
+  const modal = document.getElementById("inspector-modal");
+  const modalBackdrop = document.getElementById("modal-backdrop");
+  const modalCloseBtn = document.getElementById("modal-close-btn");
+  const modalTypeBadge = document.getElementById("modal-type-badge");
+  const modalTitle = document.getElementById("modal-title");
+  const modalPreviewStage = document.getElementById("modal-preview-stage");
+  const modalMetaDimLabel = document.getElementById("modal-meta-dim-label");
+  const modalMetaVbLabel = document.getElementById("modal-meta-vb-label");
+  const modalMetaSizeLabel = document.getElementById("modal-meta-size-label");
+  const modalScaleLabel = document.getElementById("modal-scale-label");
+  const modalMetaDim = document.getElementById("modal-meta-dim");
+  const modalMetaVb = document.getElementById("modal-meta-vb");
+  const modalMetaSize = document.getElementById("modal-meta-size");
+  const modalCodeLabel = document.getElementById("modal-code-label");
+  const modalCodeContent = document.getElementById("modal-code-content");
+  const modalCopyDataUriBtn = document.getElementById("modal-copy-datauri-btn");
+  const modalCopyBtn = document.getElementById("modal-copy-btn");
+  const modalPngBtn = document.getElementById("modal-png-btn");
+  const modalSaveBtn = document.getElementById("modal-save-btn");
+  const scalePills = document.querySelectorAll(".scale-pill");
+
+  const toastContainer = document.getElementById("toast-container");
+
+  // State
+  let allSvgs = [];
+  let filteredSvgs = [];
+  let sourceTabId = null;
+  let currentLang = "en";
+  let currentFilter = "all";
+  let currentSort = "order";
+  let currentSearch = "";
+  let currentBackdrop = "grid";
+  let selectedKeys = new Set();
+  let activeModalSvg = null;
+  let pngExportScale = 2;
+
   const translations = {
     en: {
+      heroKicker: "VECTOR ASSET INSPECTOR",
       title: "SVG Extractor Pro",
-      subtitle: "SVGs found on the page",
-      loading: "Loading SVGs...",
-      noSvg: "No SVG images found on this page",
-      save: "Save SVG",
-      savePNG: "Save PNG",
+      subtitle: "Inspect, preview, and export clean vector assets from the active page.",
+      headerCoffee: "Buy a coffee",
+      rescan: "Rescan",
+      loading: "Scanning page vectors...",
+      emptyTitle: "No SVG vectors found",
+      emptyDesc: "This page may not contain vector assets yet, or dynamic icons haven't mounted.",
+      noMatchTitle: "No matching vectors",
+      noMatchDesc: "Try clearing the search query or switching the active type filter.",
+      rescanPage: "Rescan page",
+      clearFilters: "Reset filters",
+      searchPlaceholder: "Search by name, viewBox, or size...",
+      sortOrder: "Page order",
+      sortName: "Name (A–Z)",
+      sortDimensions: "Dimensions (largest)",
+      sortSize: "File size (largest)",
+      backdropGrid: "Grid",
+      backdropDark: "Dark",
+      backdropLight: "Light",
+      backdropChecker: "Checker",
+      filterAll: "All",
+      filterInline: "Inline",
+      filterSprite: "Sprite",
+      filterImage: "Image",
+      filterBackground: "Background",
+      selectAll: "Select all",
+      selectedCount: "selected",
+      downloadAll: "Download All ZIP",
+      downloadSelected: "Download Selected ZIP",
+      archiving: "Archiving",
+      zipReady: "ZIP exported",
+      zipFailed: "ZIP export failed",
+      saveSvg: "SVG",
+      savePng: "PNG",
       copy: "Copy",
-      copyContent: "Copy SVG",
-      copyURL: "Copy Link",
-      copied: "Copied!",
-      download: "Download",
-      downloadAll: "Download All SVGs",
-      downloadingAll: "Archiving...",
-      downloadComplete: "SVGs saved",
-      downloadError: "Error",
-      viewSource: "View Source",
-      error: "Error loading SVGs: ",
-      errorHint: "There was a problem loading SVG content.",
-      dimensions: "Dimensions",
-      type: "Type",
-      inlineType: "Inline SVG",
-      imageType: "Image SVG",
-      objectType: "Object SVG",
-      backgroundType: "Background SVG",
-      viewBox: "ViewBox",
-      close: "Close",
-      refresh: "Refresh",
-      preview: "Preview",
+      copied: "Copied",
+      copySvg: "Copy SVG",
+      copyDataUri: "Copy Data URI",
+      exportPng: "Export PNG",
+      saveSvgFull: "Save SVG",
+      sourceCode: "SOURCE CODE",
+      dimensions: "DIMENSIONS",
+      viewBox: "VIEWBOX",
+      size: "SIZE",
+      pngScale: "PNG SCALE",
       leaveFeedback: "Leave Feedback",
       reportABug: "Report a Bug",
-      buyMeACoffee: "Buy Me a Coffee"
+      buyMeACoffee: "Buy Me a Coffee",
+      footerDesc: "Built independently for designers and frontend engineers. Zero ads, zero tracking.",
+      statVectors: "vectors",
+      statInline: "inline",
+      statSprite: "sprite",
+      statImage: "image",
+      statBackground: "background",
+      toastCopied: "SVG copied to clipboard",
+      toastDataUriCopied: "Data URI copied to clipboard",
+      toastCopyError: "Failed to copy to clipboard",
+      toastSvgSaved: "SVG download started",
+      toastPngSaved: "PNG exported",
+      toastPngError: "Could not export PNG",
+      toastRescanOk: "Page rescanned",
+      toastRescanErr: "Unable to rescan source tab",
+      previewFailed: "Preview unavailable"
     },
     uk: {
-      title: "SVG Екстрактор Pro",
-      subtitle: "Знайдені SVG зображення на сторінці",
-      loading: "Завантаження SVG...",
-      noSvg: "SVG-зображення не знайдено на цій сторінці",
-      save: "Зберегти SVG",
-      savePNG: "Зберегти PNG",
+      heroKicker: "ІНСПЕКТОР ВЕКТОРНОЇ ГРАФІКИ",
+      title: "SVG Extractor Pro",
+      subtitle: "Переглядайте, фільтруйте та експортуйте чисті векторні ресурси зі сторінки.",
+      headerCoffee: "Пригостити кавою",
+      rescan: "Оновити",
+      loading: "Сканування векторів на сторінці...",
+      emptyTitle: "SVG-зображення не знайдено",
+      emptyDesc: "На цій сторінці немає векторних елементів або вони ще не завантажились.",
+      noMatchTitle: "Нічого не знайдено",
+      noMatchDesc: "Спробуйте очистити пошуковий запит або змінити активний фільтр.",
+      rescanPage: "Сканувати знову",
+      clearFilters: "Скинути фільтри",
+      searchPlaceholder: "Пошук за назвою, viewBox чи розміром...",
+      sortOrder: "Порядок на сторінці",
+      sortName: "Назва (A–Z)",
+      sortDimensions: "Найбільший розмір",
+      sortSize: "Найбільша вага файлу",
+      backdropGrid: "Сітка",
+      backdropDark: "Темний",
+      backdropLight: "Світлий",
+      backdropChecker: "Шахи",
+      filterAll: "Усі",
+      filterInline: "Inline",
+      filterSprite: "Спрайти",
+      filterImage: "Зображення",
+      filterBackground: "Фон",
+      selectAll: "Обрати всі",
+      selectedCount: "обрано",
+      downloadAll: "Завантажити все ZIP",
+      downloadSelected: "Завантажити обрані ZIP",
+      archiving: "Архівування",
+      zipReady: "ZIP збережено",
+      zipFailed: "Помилка створення ZIP",
+      saveSvg: "SVG",
+      savePng: "PNG",
       copy: "Копіювати",
-      copyContent: "Копіювати SVG",
-      copyURL: "Копіювати посилання",
-      copied: "Скопійовано!",
-      download: "Завантажити",
-      downloadAll: "Завантажити всі SVG",
-      downloadingAll: "Архівування...",
-      downloadComplete: "SVG завантажено",
-      downloadError: "Помилка",
-      viewSource: "Переглянути код",
-      error: "Помилка завантаження SVG: ",
-      errorHint: "Виникла проблема під час завантаження SVG.",
-      dimensions: "Розміри",
-      type: "Тип",
-      inlineType: "Вбудований SVG",
-      imageType: "SVG-зображення",
-      objectType: "SVG-об'єкт",
-      backgroundType: "Фоновий SVG",
-      viewBox: "ViewBox",
-      close: "Закрити",
-      refresh: "Оновити",
-      preview: "Перегляд",
+      copied: "Скопійовано",
+      copySvg: "Копіювати SVG",
+      copyDataUri: "Копіювати Data URI",
+      exportPng: "Експорт PNG",
+      saveSvgFull: "Зберегти SVG",
+      sourceCode: "ВИХІДНИЙ КОД",
+      dimensions: "РОЗМІРИ",
+      viewBox: "VIEWBOX",
+      size: "РОЗМІР",
+      pngScale: "МАСШТАБ PNG",
       leaveFeedback: "Залишити відгук",
       reportABug: "Повідомити про помилку",
-      buyMeACoffee: "Купити мені каву"
+      buyMeACoffee: "Пригостити кавою",
+      footerDesc: "Незалежний інструмент для дизайнерів і фронтенд-розробників. Без реклами й трекерів.",
+      statVectors: "векторів",
+      statInline: "inline",
+      statSprite: "спрайтів",
+      statImage: "зображень",
+      statBackground: "фонових",
+      toastCopied: "SVG скопійовано в буфер обміну",
+      toastDataUriCopied: "Data URI скопійовано",
+      toastCopyError: "Не вдалося скопіювати",
+      toastSvgSaved: "Завантаження SVG розпочато",
+      toastPngSaved: "PNG експортовано",
+      toastPngError: "Не вдалося експортувати PNG",
+      toastRescanOk: "Сторінку проскановано",
+      toastRescanErr: "Не вдалося оновити вихідну вкладку",
+      previewFailed: "Попередній перегляд недоступний"
     }
   };
 
-  // Theme Toggle Functionality
-  function initTheme() {
-    try {
-      // Set dark theme as default
-      document.documentElement.classList.add('dark');
-      themeIconLight.style.display = 'none';
-      themeIconDark.style.display = 'block';
+  function t(key) {
+    return translations[currentLang]?.[key] || translations.en[key] || key;
+  }
 
-      // Save preference to localStorage
-      localStorage.setItem('theme', 'dark');
+  function showToast(message, isError = false) {
+    if (!toastContainer) return;
+    const toast = document.createElement("div");
+    toast.className = `studio-toast${isError ? " is-error" : ""}`;
 
-      // Try to save to browser storage
-      try {
-        chrome.storage.local.set({ 'theme': 'dark' })
-          .catch(err => console.error("Error saving theme to browser storage:", err));
-      } catch (error) {
-        console.error("Browser storage not accessible:", error);
+    const dot = document.createElement("span");
+    dot.className = "toast-dot";
+    const label = document.createElement("span");
+    label.textContent = message;
+
+    toast.appendChild(dot);
+    toast.appendChild(label);
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      toast.style.transition = "opacity 0.2s ease";
+      setTimeout(() => toast.remove(), 220);
+    }, 2400);
+  }
+
+  function formatBytes(bytes) {
+    if (!bytes || bytes <= 0) return "—";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  }
+
+  function formatDimensions(width, height) {
+    const w = width ? Math.round(width) : "auto";
+    const h = height ? Math.round(height) : "auto";
+    return `${w} × ${h} px`;
+  }
+
+  function getSvgKey(svg, index) {
+    return svg.id || `${svg.type}-${svg.name}-${index}`;
+  }
+
+  function buildSafeFilename(svg, ext, usedNames) {
+    const base = (svg.name || "vector")
+      .replace(/[^\w-]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "")
+      .toLowerCase()
+      .slice(0, 48) || "vector";
+
+    let candidate = `${base}.${ext}`;
+    if (usedNames) {
+      let counter = 2;
+      while (usedNames.has(candidate)) {
+        candidate = `${base}-${counter}.${ext}`;
+        counter++;
       }
-    } catch (error) {
-      console.error("Error initializing theme:", error);
+      usedNames.add(candidate);
+    }
+    return candidate;
+  }
+
+  function sanitizeSvgElement(svgString) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgString, "image/svg+xml");
+    if (doc.querySelector("parsererror")) {
+      throw new Error("Invalid SVG markup");
+    }
+    const root = document.importNode(doc.documentElement, true);
+
+    // Strip scripts and inline event handlers
+    root.querySelectorAll("script, foreignObject").forEach((el) => el.remove());
+    const walk = [root, ...root.querySelectorAll("*")];
+    walk.forEach((node) => {
+      for (const attr of Array.from(node.attributes)) {
+        if (attr.name.toLowerCase().startsWith("on")) {
+          node.removeAttribute(attr.name);
+        }
+      }
+    });
+
+    if (!root.getAttribute("xmlns")) {
+      root.setAttribute("xmlns", SVG_NS);
+    }
+    return root;
+  }
+
+  function formatXmlSource(xml) {
+    return (xml || "")
+      .replace(/>\s*</g, ">\n<")
+      .trim();
+  }
+
+  async function resolveSvgMarkup(svg) {
+    if (svg.content) return svg.content;
+    if (!svg.url) throw new Error("No SVG content or URL");
+
+    if (svg.url.startsWith("data:image/svg+xml")) {
+      const commaIdx = svg.url.indexOf(",");
+      if (commaIdx === -1) throw new Error("Malformed data URL");
+      const meta = svg.url.slice(0, commaIdx);
+      const payload = svg.url.slice(commaIdx + 1);
+      return meta.includes(";base64") ? atob(payload) : decodeURIComponent(payload);
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
+    try {
+      const res = await fetch(svg.url, {
+        signal: controller.signal,
+        headers: { Accept: "image/svg+xml,*/*" }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const text = await res.text();
+      if (!text.includes("<svg")) {
+        throw new Error("Response is not valid SVG");
+      }
+      svg.content = text; // Cache for subsequent copies/exports
+      return text;
+    } finally {
+      clearTimeout(timer);
     }
   }
 
-  // Improved SVG to PNG conversion function
-  function svgToPng(svgElement, width, height) {
+  async function convertSvgToPngDataUrl(svg, scale = 2) {
+    let width = parseFloat(svg.width) || 0;
+    let height = parseFloat(svg.height) || 0;
+    let markup = null;
+
+    try {
+      markup = await resolveSvgMarkup(svg);
+    } catch {
+      markup = null;
+    }
+
+    if (markup) {
+      const parsed = sanitizeSvgElement(markup);
+      if (!width || !height) {
+        const vb = parsed.viewBox?.baseVal;
+        width = width || vb?.width || 256;
+        height = height || vb?.height || 256;
+      }
+      width = Math.max(16, Math.round(width));
+      height = Math.max(16, Math.round(height));
+      parsed.setAttribute("width", String(width));
+      parsed.setAttribute("height", String(height));
+      const serialized = new XMLSerializer().serializeToString(parsed);
+      const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(serialized)}`;
+      return rasterizeImageToPng(dataUrl, width, height, scale);
+    }
+
+    if (svg.url) {
+      width = Math.max(16, Math.round(width || 256));
+      height = Math.max(16, Math.round(height || 256));
+      return rasterizeImageToPng(svg.url, width, height, scale, true);
+    }
+
+    throw new Error("No renderable SVG source");
+  }
+
+  function rasterizeImageToPng(src, width, height, scale, useCrossOrigin = false) {
     return new Promise((resolve, reject) => {
-      try {
-        // Create a clone of the SVG element to avoid modifying the original
-        const clonedSvg = svgElement.cloneNode(true);
-
-        // Get dimensions with proper fallbacks
-        let svgWidth, svgHeight;
-
-        // Try to get dimensions from various sources
-        if (width && !isNaN(parseFloat(width))) {
-          svgWidth = parseFloat(width);
-        } else if (svgElement.getAttribute('width')) {
-          svgWidth = parseFloat(svgElement.getAttribute('width'));
-        } else if (svgElement.viewBox?.baseVal?.width) {
-          svgWidth = svgElement.viewBox.baseVal.width;
-        } else if (svgElement.getBoundingClientRect) {
-          svgWidth = svgElement.getBoundingClientRect().width;
-        } else {
-          svgWidth = 300; // Default fallback
-        }
-
-        if (height && !isNaN(parseFloat(height))) {
-          svgHeight = parseFloat(height);
-        } else if (svgElement.getAttribute('height')) {
-          svgHeight = parseFloat(svgElement.getAttribute('height'));
-        } else if (svgElement.viewBox?.baseVal?.height) {
-          svgHeight = svgElement.viewBox.baseVal.height;
-        } else if (svgElement.getBoundingClientRect) {
-          svgHeight = svgElement.getBoundingClientRect().height;
-        } else {
-          svgHeight = 300; // Default fallback
-        }
-
-        // Ensure values are valid numbers and not too small
-        svgWidth = Math.max(10, isNaN(svgWidth) ? 300 : svgWidth);
-        svgHeight = Math.max(10, isNaN(svgHeight) ? 300 : svgHeight);
-
-        // Append width and height attributes to the cloned SVG to ensure proper rendering
-        clonedSvg.setAttribute('width', svgWidth);
-        clonedSvg.setAttribute('height', svgHeight);
-
-        // Serialize the SVG to a string
-        const serializer = new XMLSerializer();
-        const svgString = serializer.serializeToString(clonedSvg);
-
-        // Create a properly encoded data URL
-        const svgBlob = new Blob([svgString], {type: 'image/svg+xml;charset=utf-8'});
-        const url = URL.createObjectURL(svgBlob);
-
-        // Create image and canvas for conversion
-        const img = new Image();
-        const canvas = document.createElement('canvas');
-
-        // Set canvas dimensions with optional scaling for high-DPI displays
-        const scale = window.devicePixelRatio || 1;
-        canvas.width = svgWidth * scale;
-        canvas.height = svgHeight * scale;
-        canvas.style.width = svgWidth + 'px';
-        canvas.style.height = svgHeight + 'px';
-
-        // Set up image load handler
-        img.onload = () => {
-          // Get canvas context and draw the image
-          const ctx = canvas.getContext('2d');
+      const img = new Image();
+      if (useCrossOrigin) {
+        img.crossOrigin = "anonymous";
+      }
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.round(width * scale);
+          canvas.height = Math.round(height * scale);
+          const ctx = canvas.getContext("2d");
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.scale(scale, scale);
-          ctx.drawImage(img, 0, 0, svgWidth, svgHeight);
-
-          // Clean up the URL object
-          URL.revokeObjectURL(url);
-
-          // Create the PNG data URL
-          const pngDataUrl = canvas.toDataURL('image/png');
-          resolve(pngDataUrl);
-        };
-
-        // Set up error handler
-        img.onerror = (error) => {
-          URL.revokeObjectURL(url);
-
-          // Try an alternative approach if the first one fails
-          console.warn("Initial SVG to PNG conversion failed, trying alternative method...");
-
-          try {
-            // Alternative method: embed SVG directly in data URL
-            const encodedSvg = encodeURIComponent(svgString);
-            const dataUrl = `data:image/svg+xml;charset=utf-8,${encodedSvg}`;
-
-            const fallbackImg = new Image();
-            fallbackImg.onload = () => {
-              const ctx = canvas.getContext('2d');
-              ctx.clearRect(0, 0, canvas.width, canvas.height);
-              ctx.scale(scale, scale);
-              ctx.drawImage(fallbackImg, 0, 0, svgWidth, svgHeight);
-
-              const pngDataUrl = canvas.toDataURL('image/png');
-              resolve(pngDataUrl);
-            };
-
-            fallbackImg.onerror = (fallbackError) => {
-              reject(new Error("Both SVG conversion methods failed"));
-            };
-
-            fallbackImg.src = dataUrl;
-          } catch (alternativeError) {
-            reject(alternativeError);
-          }
-        };
-
-        // Start loading the image
-        img.src = url;
-
-      } catch (error) {
-        console.error("SVG to PNG conversion error:", error);
-        reject(error);
-      }
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/png"));
+        } catch (err) {
+          reject(err);
+        }
+      };
+      img.onerror = () => reject(new Error("Image load failed"));
+      img.src = src;
     });
   }
 
-  // Function to set language and update text
-  function setLanguage(lang) {
-    // Save the language preference to localStorage
-    localStorage.setItem('language', lang);
+  function triggerBrowserDownload(href, filename) {
+    const a = document.createElement("a");
+    a.href = href;
+    a.download = filename;
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
 
-    // Try to save to browser storage if available
+  async function downloadSingleSvg(svg) {
+    const filename = buildSafeFilename(svg, "svg");
     try {
-      chrome.storage.local.set({ 'language': lang }).catch(err =>
-        console.error("Error saving language to browser storage:", err));
-    } catch (error) {
-      console.error("Browser storage not accessible:", error);
-    }
-
-    // Set the lang attribute on the document
-    document.documentElement.setAttribute('lang', lang);
-
-    // Update UI text for static elements
-    if (pageTitle) pageTitle.textContent = translations[lang].title;
-    if (pageSubtitle) pageSubtitle.textContent = translations[lang].subtitle;
-    if (loadingDiv) {
-      const loadingSpinner = loadingDiv.querySelector('.spinner');
-      loadingDiv.textContent = translations[lang].loading;
-      if (loadingSpinner) {
-        loadingDiv.prepend(loadingSpinner);
+      const markup = await resolveSvgMarkup(svg);
+      const blob = new Blob([markup], { type: "image/svg+xml;charset=utf-8" });
+      const blobUrl = URL.createObjectURL(blob);
+      triggerBrowserDownload(blobUrl, filename);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1500);
+      showToast(t("toastSvgSaved"));
+    } catch {
+      if (svg.url) {
+        chrome.runtime.sendMessage({ action: "downloadSVG", svg });
+        showToast(t("toastSvgSaved"));
+      } else {
+        showToast(t("zipFailed"), true);
       }
     }
-    if (noSvgDiv) noSvgDiv.textContent = translations[lang].noSvg;
-    if (downloadAllText) downloadAllText.textContent = translations[lang].downloadAll;
-
-    // Update any existing dynamic content
-    updateDynamicContent(lang);
   }
 
-  // Update text for dynamically created elements
-  function updateDynamicContent(lang) {
-    // Update buttons
-    document.querySelectorAll('.svg-buttons button').forEach(btn => {
-      const btnClass = btn.className.split(' ').find(cls => cls.startsWith('btn-'));
-      if (!btnClass) return;
-
-      const svg = btn.querySelector('svg');
-      btn.textContent = '';
-      if (svg) btn.appendChild(svg.cloneNode(true));
-
-      let text = '';
-      switch (btnClass) {
-        case 'btn-save':
-          text = translations[lang].save;
-          break;
-        case 'btn-save-png':
-          text = translations[lang].savePNG;
-          break;
-        case 'btn-copy':
-          text = translations[lang].copy;
-          break;
-        case 'btn-copy-content':
-          text = translations[lang].copyContent;
-          break;
-        case 'btn-copy-url':
-          text = translations[lang].copyURL;
-          break;
-        case 'btn-view-source':
-          text = translations[lang].viewSource;
-          break;
-      }
-
-      if (text) {
-        btn.appendChild(document.createTextNode(` ${text}`));
-      }
-    });
-
-    // Update download all button
-    if (downloadAllText) {
-      downloadAllText.textContent = translations[lang].downloadAll;
-    }
-
-    // Update feedback and support buttons
-    document.querySelectorAll('.feedback-text').forEach(element => {
-      if (element.hasAttribute(`data-${lang}`)) {
-        element.textContent = element.getAttribute(`data-${lang}`);
-      }
-    });
-  }
-
-  // Initialize language
-  function initLanguage() {
+  async function downloadSinglePng(svg, scale = 2) {
     try {
-      // Set English as default language
-      setLanguage('en');
-
-      // Set language indicator
-      langToggleEn.style.opacity = '1';
-      langToggleUk.style.opacity = '0.6';
-
-      // Save preference to localStorage and browser storage
-      localStorage.setItem('language', 'en');
-      try {
-        chrome.storage.local.set({ 'language': 'en' })
-          .catch(err => console.error("Error saving language to browser storage:", err));
-      } catch (error) {
-        console.error("Browser storage not accessible:", error);
-      }
+      const pngDataUrl = await convertSvgToPngDataUrl(svg, scale);
+      const filename = buildSafeFilename(svg, "png");
+      triggerBrowserDownload(pngDataUrl, filename);
+      showToast(`${t("toastPngSaved")} (${scale}×)`);
     } catch (error) {
-      console.error("Error initializing language:", error);
-      // Default to English as fallback
-      setLanguage('en');
-      langToggleEn.style.opacity = '1';
-      langToggleUk.style.opacity = '0.6';
+      console.error("PNG export error:", error);
+      showToast(t("toastPngError"), true);
     }
   }
 
-  // Function to download all SVGs as a ZIP archive
-  async function downloadAllSVGs(svgs) {
-    if (!svgs || svgs.length === 0) {
+  async function downloadZipArchive(svgsToExport) {
+    if (!svgsToExport || !svgsToExport.length) return;
+    if (typeof JSZip === "undefined") {
+      showToast(t("zipFailed"), true);
       return;
     }
 
-    const downloadAllBtn = document.getElementById('download-all-btn');
-    const originalText = downloadAllBtn.innerHTML;
-    const currentLang = localStorage.getItem('language') || 'en';
+    downloadAllBtn.disabled = true;
+    const zip = new JSZip();
+    const usedNames = new Set();
+    let completed = 0;
+    let successCount = 0;
+
+    const updateProgress = () => {
+      downloadAllText.textContent = `${t("archiving")} ${completed}/${svgsToExport.length}...`;
+    };
+    updateProgress();
+
+    const CONCURRENCY = 6;
+    let cursor = 0;
+
+    async function worker() {
+      while (cursor < svgsToExport.length) {
+        const idx = cursor++;
+        const svg = svgsToExport[idx];
+        const filename = buildSafeFilename(svg, "svg", usedNames);
+        try {
+          const markup = await resolveSvgMarkup(svg);
+          zip.file(filename, markup);
+          successCount++;
+        } catch {
+          // Skip broken remote assets rather than writing invalid placeholders
+        } finally {
+          completed++;
+          updateProgress();
+        }
+      }
+    }
 
     try {
-      // Verify JSZip is available
-      if (typeof JSZip === 'undefined') {
-        throw new Error('JSZip library not available');
+      const workers = Array.from({ length: Math.min(CONCURRENCY, svgsToExport.length) }, worker);
+      await Promise.all(workers);
+
+      if (successCount === 0) {
+        throw new Error("No valid SVGs could be packaged");
       }
 
-      // Update button to show loading
-      downloadAllBtn.innerHTML = `
-        <svg class="spinner-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <path d="M12 2a10 10 0 0 1 10 10"></path>
-        </svg>
-        <span>${translations[currentLang].downloadingAll}</span>
-      `;
-
-      // Add animation to spinner
-      const spinner = downloadAllBtn.querySelector('.spinner-icon');
-      if (spinner) {
-        spinner.style.animation = 'spin 1.5s linear infinite';
-
-        // Add the keyframes for spin animation if not already present
-        if (!document.querySelector('#spinner-keyframes')) {
-          const style = document.createElement('style');
-          style.id = 'spinner-keyframes';
-          style.textContent = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
-          document.head.appendChild(style);
-        }
-      }
-
-      const zip = new JSZip();
-      let successCount = 0;
-
-      // Process each SVG
-      for (let i = 0; i < svgs.length; i++) {
-        const svg = svgs[i];
-        if (!svg) continue; // Skip invalid entries
-
-        try {
-          const filename = `${generateFileName(svg)}.svg`;
-
-          if (svg.type === 'inline' && svg.content) {
-            // Add inline SVG content directly to the ZIP
-            zip.file(filename, svg.content);
-            successCount++;
-          } else if (svg.url) {
-            // Handle data: URLs directly
-            if (svg.url.startsWith('data:')) {
-              // For data URLs, extract the base64 content
-              try {
-                const contentStart = svg.url.indexOf(',') + 1;
-                const isBase64 = svg.url.includes(';base64,');
-                let content;
-
-                if (isBase64) {
-                  // Decode base64 content
-                  content = atob(svg.url.substring(contentStart));
-                } else {
-                  // Handle non-base64 data URLs
-                  content = decodeURIComponent(svg.url.substring(contentStart));
-                }
-
-                zip.file(filename, content);
-                successCount++;
-              } catch (error) {
-                console.error(`Error processing data URL: ${error.message}`);
-                // Fallback - just store the URL
-                zip.file(filename, svg.url);
-                successCount++;
-              }
-            } else {
-              // Fetch SVG from remote URL
-              try {
-                // Use fetch with a timeout
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10-second timeout
-
-                const response = await fetch(svg.url, { 
-                  signal: controller.signal,
-                  // Add headers to prevent CORS issues
-                  headers: {
-                    'Accept': 'image/svg+xml, */*'
-                  }
-                });
-
-                clearTimeout(timeoutId);
-
-                if (response.ok) {
-                  const svgText = await response.text();
-                  zip.file(filename, svgText);
-                  successCount++;
-                } else {
-                  throw new Error(`Status ${response.status}`);
-                }
-              } catch (fetchError) {
-                console.error(`Error fetching SVG from ${svg.url}: ${fetchError.message}`);
-
-                // Add a placeholder with error message for failed SVGs
-                const errorSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-                  <rect width="100" height="100" fill="#f8f8f8"/>
-                  <text x="50" y="50" font-family="sans-serif" font-size="12" text-anchor="middle">
-                    Error loading SVG
-                  </text>
-                </svg>`;
-
-                zip.file(filename, errorSvg);
-                // Still count as success to avoid confusing the user
-                successCount++;
-              }
-            }
-          }
-        } catch (svgError) {
-          console.error(`Error processing SVG ${svg.name || 'unnamed'}: ${svgError.message}`);
-        }
-      }
-
-      // Generate the ZIP file
-      const content = await zip.generateAsync({
-        type: 'blob',
-        compression: 'DEFLATE',
-        compressionOptions: {
-          level: 9
-        }
+      const blob = await zip.generateAsync({
+        type: "blob",
+        compression: "DEFLATE",
+        compressionOptions: { level: 6 }
       });
 
-      // Create a unique filename with date
-      const date = new Date();
-      const timestamp = date.toISOString()
-        .replace(/[\-\:\.T]/g, '')
-        .substring(0, 14);
-
-      // Create a download link
-      const url = URL.createObjectURL(content);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `svg-extractor-${timestamp}.zip`;
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-
-      // Clean up
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-      // Update button to show success
-      downloadAllBtn.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-          <polyline points="22 4 12 14.01 9 11.01"></polyline>
-        </svg>
-        <span>${successCount} ${translations[currentLang].downloadComplete}</span>
-      `;
-
-      // Reset button after 3 seconds
-      setTimeout(() => {
-        downloadAllBtn.innerHTML = originalText;
-      }, 3000);
-
+      const ts = new Date().toISOString().replace(/[-:.T]/g, "").slice(0, 14);
+      const url = URL.createObjectURL(blob);
+      triggerBrowserDownload(url, `svg-extractor-pro-${ts}.zip`);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      showToast(`${t("zipReady")} (${successCount})`);
     } catch (error) {
-      console.error("ZIP creation failed:", error);
-
-      // Reset button with error
-      downloadAllBtn.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="8" x2="12" y2="12"></line>
-          <line x1="12" y1="16" x2="12.01" y2="16"></line>
-        </svg>
-        <span>${translations[currentLang].downloadError}: ${error.message}</span>
-      `;
-
-      // Reset button after 5 seconds
-      setTimeout(() => {
-        downloadAllBtn.innerHTML = originalText;
-      }, 5000);
+      console.error("ZIP generation failed:", error);
+      showToast(t("zipFailed"), true);
+    } finally {
+      downloadAllBtn.disabled = false;
+      updateDownloadAllLabel();
     }
   }
 
-  // Initialize theme and language
-  initTheme();
-  initLanguage();
+  // Theme management (preserves saved choice)
+  function applyTheme(theme) {
+    const isDark = theme !== "light";
+    document.documentElement.classList.toggle("dark", isDark);
+    themeIconLight.style.display = isDark ? "block" : "none";
+    themeIconDark.style.display = isDark ? "none" : "block";
+    localStorage.setItem("theme", isDark ? "dark" : "light");
+  }
 
-  // Toggle theme button click handler
-  themeToggle.addEventListener('click', () => {
-    const isDark = document.documentElement.classList.toggle('dark');
-
-    // Save preference to localStorage
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-
-    // Try to save to browser storage if available
+  async function initTheme() {
+    let saved = localStorage.getItem("theme");
     try {
-      chrome.storage.local.set({ 'theme': isDark ? 'dark' : 'light' })
-        .catch(err => console.error("Error saving theme to browser storage:", err));
-    } catch (error) {
-      console.error("Browser storage not accessible:", error);
+      const data = await chrome.storage.local.get("theme");
+      if (data?.theme === "light" || data?.theme === "dark") {
+        saved = data.theme;
+      }
+    } catch {
+      // Fallback to localStorage
+    }
+    applyTheme(saved || "dark");
+  }
+
+  // Language management (preserves saved choice)
+  function applyLanguage(lang) {
+    currentLang = lang === "uk" ? "uk" : "en";
+    document.documentElement.setAttribute("lang", currentLang);
+    localStorage.setItem("language", currentLang);
+
+    langToggleEn.classList.toggle("is-active", currentLang === "en");
+    langToggleEn.setAttribute("aria-pressed", String(currentLang === "en"));
+    langToggleUk.classList.toggle("is-active", currentLang === "uk");
+    langToggleUk.setAttribute("aria-pressed", String(currentLang === "uk"));
+
+    heroKicker.textContent = t("heroKicker");
+    pageTitle.textContent = t("title");
+    pageSubtitle.textContent = t("subtitle");
+    headerCoffeeText.textContent = t("headerCoffee");
+    rescanLabel.textContent = t("rescan");
+    loadingText.textContent = t("loading");
+    searchInput.placeholder = t("searchPlaceholder");
+    selectAllText.textContent = t("selectAll");
+    footerDesc.textContent = t("footerDesc");
+
+    const sortOptions = sortSelect.options;
+    if (sortOptions.length >= 4) {
+      sortOptions[0].textContent = t("sortOrder");
+      sortOptions[1].textContent = t("sortName");
+      sortOptions[2].textContent = t("sortDimensions");
+      sortOptions[3].textContent = t("sortSize");
     }
 
-    // Toggle visibility of theme icons
-    themeIconLight.style.display = isDark ? 'none' : 'block';
-    themeIconDark.style.display = isDark ? 'block' : 'none';
-  });
+    backdropBtns.forEach((btn) => {
+      const mode = btn.dataset.backdrop;
+      const cap = mode.charAt(0).toUpperCase() + mode.slice(1);
+      btn.textContent = t(`backdrop${cap}`);
+    });
 
-  // Language toggle handlers
-  langToggleEn.addEventListener('click', () => {
-    setLanguage('en');
-    // Highlight active language
-    langToggleEn.style.opacity = '1';
-    langToggleUk.style.opacity = '0.6';
-  });
+    document.querySelectorAll("[data-i18n]").forEach((el) => {
+      const key = el.getAttribute("data-i18n");
+      if (key) el.textContent = t(key);
+    });
 
-  langToggleUk.addEventListener('click', () => {
-    setLanguage('uk');
-    // Highlight active language
-    langToggleUk.style.opacity = '1';
-    langToggleEn.style.opacity = '0.6';
-  });
+    modalMetaDimLabel.textContent = t("dimensions");
+    modalMetaVbLabel.textContent = t("viewBox");
+    modalMetaSizeLabel.textContent = t("size");
+    modalScaleLabel.textContent = t("pngScale");
+    modalCodeLabel.textContent = t("sourceCode");
+    modalCopyDataUriBtn.textContent = t("copyDataUri");
+    modalCopyBtn.textContent = t("copySvg");
+    modalPngBtn.textContent = t("exportPng");
+    modalSaveBtn.textContent = t("saveSvgFull");
 
-  // Function to create SVG icon
-  function createSVGIcon(path, viewBox = "0 0 24 24") {
-    const svg = document.createElementNS(svgNS, "svg");
-    svg.setAttribute("width", "16");
-    svg.setAttribute("height", "16");
-    svg.setAttribute("viewBox", viewBox);
+    updateStatsAndCounts();
+    updateDownloadAllLabel();
+    updateSelectionBadge();
+    renderCards();
+  }
+
+  async function initLanguage() {
+    let saved = localStorage.getItem("language");
+    try {
+      const data = await chrome.storage.local.get("language");
+      if (data?.language === "uk" || data?.language === "en") {
+        saved = data.language;
+      }
+    } catch {
+      // Fallback
+    }
+    if (!saved) {
+      const navLang = (navigator.language || "en").toLowerCase();
+      saved = navLang.startsWith("uk") ? "uk" : "en";
+    }
+    applyLanguage(saved);
+  }
+
+  function updateDownloadAllLabel() {
+    if (selectedKeys.size > 0) {
+      downloadAllText.textContent = `${t("downloadSelected")} (${selectedKeys.size})`;
+    } else {
+      downloadAllText.textContent = `${t("downloadAll")} (${filteredSvgs.length || allSvgs.length})`;
+    }
+  }
+
+  function updateSelectionBadge() {
+    if (selectedKeys.size > 0) {
+      selectionBadge.hidden = false;
+      selectionBadge.textContent = `${selectedKeys.size} ${t("selectedCount")}`;
+    } else {
+      selectionBadge.hidden = true;
+    }
+    updateDownloadAllLabel();
+  }
+
+  function updateStatsAndCounts() {
+    const counts = { all: allSvgs.length, inline: 0, sprite: 0, image: 0, background: 0 };
+    for (const svg of allSvgs) {
+      if (svg.type === "inline") counts.inline++;
+      else if (svg.type === "sprite") counts.sprite++;
+      else if (svg.type === "image" || svg.type === "object") counts.image++;
+      else if (svg.type === "background") counts.background++;
+    }
+
+    document.getElementById("count-all").textContent = String(counts.all);
+    document.getElementById("count-inline").textContent = String(counts.inline);
+    document.getElementById("count-sprite").textContent = String(counts.sprite);
+    document.getElementById("count-image").textContent = String(counts.image);
+    document.getElementById("count-background").textContent = String(counts.background);
+
+    statTotal.textContent = `• ${counts.all} ${t("statVectors")}`;
+    statInline.textContent = `• ${counts.inline} ${t("statInline")}`;
+    statSprite.textContent = `• ${counts.sprite} ${t("statSprite")}`;
+    statImage.textContent = `• ${counts.image} ${t("statImage")}`;
+    statBg.textContent = `• ${counts.background} ${t("statBackground")}`;
+  }
+
+  function computeFilteredAndSorted() {
+    const query = currentSearch.trim().toLowerCase();
+    let list = allSvgs.map((svg, idx) => ({ svg, idx }));
+
+    if (currentFilter !== "all") {
+      list = list.filter(({ svg }) => {
+        if (currentFilter === "image") {
+          return svg.type === "image" || svg.type === "object";
+        }
+        return svg.type === currentFilter;
+      });
+    }
+
+    if (query) {
+      list = list.filter(({ svg }) => {
+        const hay = `${svg.name || ""} ${svg.type || ""} ${svg.viewBox || ""} ${svg.width || ""}x${svg.height || ""}`.toLowerCase();
+        return hay.includes(query);
+      });
+    }
+
+    if (currentSort === "name") {
+      list.sort((a, b) => (a.svg.name || "").localeCompare(b.svg.name || ""));
+    } else if (currentSort === "dimensions") {
+      list.sort((a, b) => {
+        const areaA = (parseFloat(a.svg.width) || 0) * (parseFloat(a.svg.height) || 0);
+        const areaB = (parseFloat(b.svg.width) || 0) * (parseFloat(b.svg.height) || 0);
+        return areaB - areaA;
+      });
+    } else if (currentSort === "size") {
+      list.sort((a, b) => (b.svg.size || 0) - (a.svg.size || 0));
+    }
+
+    filteredSvgs = list.map((item) => item.svg);
+    return list;
+  }
+
+  function createIconSvg(paths) {
+    const svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("width", "14");
+    svg.setAttribute("height", "14");
+    svg.setAttribute("viewBox", "0 0 24 24");
     svg.setAttribute("fill", "none");
     svg.setAttribute("stroke", "currentColor");
     svg.setAttribute("stroke-width", "2");
     svg.setAttribute("stroke-linecap", "round");
     svg.setAttribute("stroke-linejoin", "round");
-
-    if (Array.isArray(path)) {
-      // Multiple path elements
-      path.forEach(p => {
-        const pathElement = document.createElementNS(svgNS, p.type || "path");
-        Object.entries(p.attributes).forEach(([attr, value]) => {
-          pathElement.setAttribute(attr, value);
-        });
-        svg.appendChild(pathElement);
-      });
-    } else {
-      // Single path
-      const pathElement = document.createElementNS(svgNS, "path");
-      pathElement.setAttribute("d", path);
-      svg.appendChild(pathElement);
-    }
-
+    svg.setAttribute("aria-hidden", "true");
+    paths.forEach(([tag, attrs]) => {
+      const el = document.createElementNS(SVG_NS, tag);
+      Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+      svg.appendChild(el);
+    });
     return svg;
   }
 
-  // Function to generate a unique filename from SVG data
-  function generateFileName(svg) {
-    const name = svg.name || 'svg-image';
-    const sanitizedName = name.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-    return `${sanitizedName}-${Date.now().toString(36)}`;
-  }
-
-  // Format dimensions for display
-  function formatDimensions(width, height) {
-    const formatValue = (val) => {
-      if (!val) return 'auto';
-      return isNaN(val) ? val : `${val}px`;
-    };
-
-    return `${formatValue(width)} × ${formatValue(height)}`;
-  }
-
-  // Create tooltip function
-  function createTooltip(text) {
-    const tooltip = document.createElement('div');
-    tooltip.className = 'tooltip';
-    tooltip.textContent = text;
-    tooltip.style.position = 'absolute';
-    tooltip.style.backgroundColor = 'var(--foreground)';
-    tooltip.style.color = 'var(--background)';
-    tooltip.style.padding = '4px 8px';
-    tooltip.style.borderRadius = 'var(--radius)';
-    tooltip.style.fontSize = '0.75rem';
-    tooltip.style.zIndex = '1000';
-    tooltip.style.opacity = '0';
-    tooltip.style.transition = 'opacity 0.2s ease-in-out';
-
-    document.body.appendChild(tooltip);
-
-    return tooltip;
-  }
-
-  // Show tooltip function
-  function showTooltip(tooltip, element, text) {
-    if (!tooltip || !element) return;
-
-    tooltip.textContent = text;
-    tooltip.style.opacity = '0.9';
-
-    const rect = element.getBoundingClientRect();
-    tooltip.style.left = `${rect.left + rect.width/2 - tooltip.offsetWidth/2}px`;
-    tooltip.style.top = `${rect.bottom + 8}px`;
-
-    // Hide tooltip after 1.5 seconds
-    setTimeout(() => {
-      tooltip.style.opacity = '0';
-    }, 1500);
-  }
-
-  // Function to create a modal for viewing SVG source
-  function createSourceModal(svg) {
-    // Create modal container
-    const modal = document.createElement('div');
-    modal.className = 'source-modal';
-    modal.style.position = 'fixed';
-    modal.style.top = '0';
-    modal.style.left = '0';
-    modal.style.width = '100%';
-    modal.style.height = '100%';
-    modal.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-    modal.style.zIndex = '9999';
-    modal.style.display = 'flex';
-    modal.style.justifyContent = 'center';
-    modal.style.alignItems = 'center';
-
-    // Create modal content
-    const content = document.createElement('div');
-    content.className = 'modal-content';
-    content.style.backgroundColor = 'var(--card)';
-    content.style.color = 'var(--card-foreground)';
-    content.style.borderRadius = 'var(--radius)';
-    content.style.padding = '1.5rem';
-    content.style.maxWidth = '90%';
-    content.style.maxHeight = '90%';
-    content.style.overflow = 'auto';
-    content.style.position = 'relative';
-
-    // Create header
-    const header = document.createElement('div');
-    header.style.display = 'flex';
-    header.style.justifyContent = 'space-between';
-    header.style.alignItems = 'center';
-    header.style.marginBottom = '1rem';
-
-    const title = document.createElement('h3');
-    title.textContent = svg.name;
-    title.style.margin = '0';
-
-    const closeBtn = document.createElement('button');
-    closeBtn.innerHTML = '&times;';
-    closeBtn.style.background = 'none';
-    closeBtn.style.border = 'none';
-    closeBtn.style.fontSize = '1.5rem';
-    closeBtn.style.cursor = 'pointer';
-    closeBtn.style.color = 'var(--foreground)';
-    closeBtn.addEventListener('click', () => {
-      document.body.removeChild(modal);
-    });
-
-    header.appendChild(title);
-    header.appendChild(closeBtn);
-
-    // Create source code container
-    const pre = document.createElement('pre');
-    pre.style.backgroundColor = 'var(--muted)';
-    pre.style.color = 'var(--foreground)';
-    pre.style.padding = '1rem';
-    pre.style.borderRadius = 'var(--radius)';
-    pre.style.overflow = 'auto';
-    pre.style.maxHeight = '70vh';
-
-    const code = document.createElement('code');
-
-    if (svg.type === 'inline') {
-      // Format the SVG content
-      const formatted = svg.content
-        .replace(/></g, '>\n<')
-        .replace(/\/>/g, '/>\n')
-        .replace(/<svg/g, '<svg\n  ');
-
-      code.textContent = formatted;
-    } else {
-      code.textContent = svg.url;
+  function renderPreviewInto(container, svg) {
+    container.innerHTML = "";
+    if ((svg.type === "inline" || svg.type === "sprite") && svg.content) {
+      try {
+        const el = sanitizeSvgElement(svg.content);
+        if (svg.computedColor && !el.style.color && svg.content.includes("currentColor")) {
+          el.style.color = "currentColor";
+        }
+        container.appendChild(el);
+        return;
+      } catch {
+        // Fallback below
+      }
     }
 
-    pre.appendChild(code);
+    if (svg.url) {
+      const img = document.createElement("img");
+      img.src = svg.url;
+      img.alt = svg.name || "SVG";
+      img.loading = "lazy";
+      img.onerror = () => {
+        container.innerHTML = "";
+        const err = document.createElement("div");
+        err.className = "preview-error";
+        err.appendChild(
+          createIconSvg([
+            ["circle", { cx: "12", cy: "12", r: "10" }],
+            ["line", { x1: "9", y1: "9", x2: "15", y2: "15" }],
+            ["line", { x1: "15", y1: "9", x2: "9", y2: "15" }]
+          ])
+        );
+        const span = document.createElement("span");
+        span.textContent = t("previewFailed");
+        err.appendChild(span);
+        container.appendChild(err);
+      };
+      container.appendChild(img);
+    }
+  }
 
-    // Create action buttons
-    const actions = document.createElement('div');
-    actions.style.display = 'flex';
-    actions.style.justifyContent = 'flex-end';
-    actions.style.gap = '0.5rem';
-    actions.style.marginTop = '1rem';
+  function renderCards() {
+    loadingDiv.hidden = true;
 
-    const copyBtn = document.createElement('button');
-    copyBtn.textContent = translations[localStorage.getItem('language') || 'en'].copy;
-    copyBtn.className = 'btn-copy';
-    copyBtn.style.backgroundColor = 'var(--primary)';
-    copyBtn.style.color = 'var(--primary-foreground)';
-    copyBtn.style.border = 'none';
-    copyBtn.style.padding = '0.5rem 1rem';
-    copyBtn.style.borderRadius = 'var(--radius)';
-    copyBtn.style.cursor = 'pointer';
+    if (!allSvgs.length) {
+      toolbarDiv.hidden = true;
+      contentDiv.hidden = true;
+      downloadAllBtn.hidden = true;
+      noSvgDiv.hidden = false;
+      emptyTitle.textContent = t("emptyTitle");
+      emptyDesc.textContent = t("emptyDesc");
+      emptyRescanBtn.textContent = t("rescanPage");
+      emptyRescanBtn.dataset.mode = "rescan";
+      return;
+    }
 
-    copyBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(code.textContent).then(() => {
-        const originalText = copyBtn.textContent;
-        copyBtn.textContent = translations[localStorage.getItem('language') || 'en'].copied;
+    toolbarDiv.hidden = false;
+    downloadAllBtn.hidden = false;
 
-        setTimeout(() => {
-          copyBtn.textContent = originalText;
-        }, 2000);
+    const items = computeFilteredAndSorted();
+    updateDownloadAllLabel();
+
+    if (!items.length) {
+      contentDiv.hidden = true;
+      noSvgDiv.hidden = false;
+      emptyTitle.textContent = t("noMatchTitle");
+      emptyDesc.textContent = t("noMatchDesc");
+      emptyRescanBtn.textContent = t("clearFilters");
+      emptyRescanBtn.dataset.mode = "clear";
+      return;
+    }
+
+    noSvgDiv.hidden = true;
+    contentDiv.hidden = false;
+
+    const fragment = document.createDocumentFragment();
+    const backdropClass = `canvas-${currentBackdrop}`;
+
+    for (const { svg, idx } of items) {
+      const key = getSvgKey(svg, idx);
+      const card = document.createElement("article");
+      card.className = `svg-item specimen-frame${selectedKeys.has(key) ? " is-selected" : ""}`;
+
+      ["anchor-tl", "anchor-tr", "anchor-bl", "anchor-br"].forEach((cls) => {
+        const node = document.createElement("span");
+        node.className = `anchor-node ${cls}`;
+        node.setAttribute("aria-hidden", "true");
+        card.appendChild(node);
       });
+
+      // Top bar
+      const topbar = document.createElement("div");
+      topbar.className = "card-topbar";
+
+      const titleGroup = document.createElement("div");
+      titleGroup.className = "card-title-group";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.className = "studio-checkbox";
+      checkbox.checked = selectedKeys.has(key);
+      checkbox.setAttribute("aria-label", `Select ${svg.name}`);
+      checkbox.addEventListener("change", () => {
+        if (checkbox.checked) {
+          selectedKeys.add(key);
+          card.classList.add("is-selected");
+        } else {
+          selectedKeys.delete(key);
+          card.classList.remove("is-selected");
+        }
+        syncSelectAllCheckbox();
+        updateSelectionBadge();
+      });
+
+      const nameEl = document.createElement("span");
+      nameEl.className = "svg-name";
+      nameEl.textContent = `${svg.name || "vector"}.svg`;
+      nameEl.title = svg.name || "vector";
+
+      titleGroup.appendChild(checkbox);
+      titleGroup.appendChild(nameEl);
+
+      const badges = document.createElement("div");
+      badges.className = "card-badges";
+
+      if (svg.occurrences && svg.occurrences > 1) {
+        const occ = document.createElement("span");
+        occ.className = "occurrence-pill";
+        occ.textContent = `×${svg.occurrences}`;
+        badges.appendChild(occ);
+      }
+
+      const typeBadge = document.createElement("span");
+      typeBadge.className = "type-badge";
+      typeBadge.dataset.type = svg.type || "inline";
+      typeBadge.textContent = (svg.type || "svg").toUpperCase();
+      badges.appendChild(typeBadge);
+
+      topbar.appendChild(titleGroup);
+      topbar.appendChild(badges);
+
+      // Preview stage
+      const preview = document.createElement("div");
+      preview.className = `svg-preview ${backdropClass}`;
+      preview.title = t("sourceCode");
+      renderPreviewInto(preview, svg);
+      preview.addEventListener("click", () => openInspectorModal(svg));
+
+      // Metadata bar
+      const metaBar = document.createElement("div");
+      metaBar.className = "svg-meta-bar";
+
+      const dimsEl = document.createElement("span");
+      dimsEl.className = "meta-dims";
+      dimsEl.textContent = formatDimensions(svg.width, svg.height);
+
+      const vbEl = document.createElement("span");
+      vbEl.className = "meta-viewbox";
+      vbEl.textContent = svg.viewBox ? `vb ${svg.viewBox}` : "";
+
+      const sizeEl = document.createElement("span");
+      sizeEl.className = "meta-size";
+      sizeEl.textContent = formatBytes(svg.size);
+
+      metaBar.appendChild(dimsEl);
+      if (svg.viewBox) metaBar.appendChild(vbEl);
+      metaBar.appendChild(sizeEl);
+
+      // Action buttons
+      const btnBar = document.createElement("div");
+      btnBar.className = "svg-buttons";
+
+      const saveBtn = document.createElement("button");
+      saveBtn.type = "button";
+      saveBtn.className = "card-btn card-btn-primary";
+      saveBtn.appendChild(
+        createIconSvg([
+          ["path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }],
+          ["polyline", { points: "7 10 12 15 17 10" }],
+          ["line", { x1: "12", y1: "15", x2: "12", y2: "3" }]
+        ])
+      );
+      saveBtn.appendChild(document.createTextNode(t("saveSvg")));
+      saveBtn.addEventListener("click", () => downloadSingleSvg(svg));
+
+      const pngBtn = document.createElement("button");
+      pngBtn.type = "button";
+      pngBtn.className = "card-btn";
+      pngBtn.appendChild(
+        createIconSvg([
+          ["rect", { x: "3", y: "3", width: "18", height: "18", rx: "2", ry: "2" }],
+          ["circle", { cx: "9", cy: "9", r: "2" }],
+          ["path", { d: "m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" }]
+        ])
+      );
+      pngBtn.appendChild(document.createTextNode(t("savePng")));
+      pngBtn.addEventListener("click", () => downloadSinglePng(svg, 2));
+
+      const copyBtn = document.createElement("button");
+      copyBtn.type = "button";
+      copyBtn.className = "card-btn card-btn-icon";
+      copyBtn.title = t("copySvg");
+      copyBtn.setAttribute("aria-label", t("copySvg"));
+      const copyIcon = createIconSvg([
+        ["rect", { width: "14", height: "14", x: "8", y: "8", rx: "2", ry: "2" }],
+        ["path", { d: "M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" }]
+      ]);
+      const checkIcon = createIconSvg([["polyline", { points: "20 6 9 17 4 12" }]]);
+      copyBtn.appendChild(copyIcon);
+      copyBtn.addEventListener("click", async () => {
+        try {
+          const text = await resolveSvgMarkup(svg).catch(() => svg.url || "");
+          await navigator.clipboard.writeText(text);
+          copyBtn.classList.add("is-copied");
+          copyBtn.replaceChildren(checkIcon.cloneNode(true));
+          showToast(t("toastCopied"));
+          setTimeout(() => {
+            copyBtn.classList.remove("is-copied");
+            copyBtn.replaceChildren(copyIcon.cloneNode(true));
+          }, 1800);
+        } catch {
+          showToast(t("toastCopyError"), true);
+        }
+      });
+
+      const inspectBtn = document.createElement("button");
+      inspectBtn.type = "button";
+      inspectBtn.className = "card-btn card-btn-icon";
+      inspectBtn.title = t("sourceCode");
+      inspectBtn.setAttribute("aria-label", t("sourceCode"));
+      inspectBtn.appendChild(
+        createIconSvg([
+          ["polyline", { points: "16 18 22 12 16 6" }],
+          ["polyline", { points: "8 6 2 12 8 18" }]
+        ])
+      );
+      inspectBtn.addEventListener("click", () => openInspectorModal(svg));
+
+      btnBar.appendChild(saveBtn);
+      btnBar.appendChild(pngBtn);
+      btnBar.appendChild(copyBtn);
+      btnBar.appendChild(inspectBtn);
+
+      card.appendChild(topbar);
+      card.appendChild(preview);
+      card.appendChild(metaBar);
+      card.appendChild(btnBar);
+      fragment.appendChild(card);
+    }
+
+    contentDiv.replaceChildren(fragment);
+    syncSelectAllCheckbox();
+  }
+
+  function syncSelectAllCheckbox() {
+    if (!filteredSvgs.length) {
+      selectAllCheckbox.checked = false;
+      selectAllCheckbox.indeterminate = false;
+      return;
+    }
+    const items = computeFilteredAndSorted();
+    const selectedVisible = items.filter(({ svg, idx }) => selectedKeys.has(getSvgKey(svg, idx))).length;
+    selectAllCheckbox.checked = selectedVisible > 0 && selectedVisible === items.length;
+    selectAllCheckbox.indeterminate = selectedVisible > 0 && selectedVisible < items.length;
+  }
+
+  async function openInspectorModal(svg) {
+    activeModalSvg = svg;
+    modal.hidden = false;
+    modalTitle.textContent = `${svg.name || "vector"}.svg`;
+    modalTypeBadge.textContent = (svg.type || "svg").toUpperCase();
+    modalTypeBadge.dataset.type = svg.type || "inline";
+
+    modalPreviewStage.className = `modal-preview-stage canvas-${currentBackdrop}`;
+    renderPreviewInto(modalPreviewStage, svg);
+
+    modalMetaDim.textContent = formatDimensions(svg.width, svg.height);
+    modalMetaVb.textContent = svg.viewBox || "—";
+    modalMetaSize.textContent = formatBytes(svg.size);
+    modalCodeContent.textContent = svg.content ? formatXmlSource(svg.content) : svg.url || "";
+
+    if (!svg.content && svg.url) {
+      try {
+        const fetched = await resolveSvgMarkup(svg);
+        if (activeModalSvg === svg) {
+          modalCodeContent.textContent = formatXmlSource(fetched);
+          modalMetaSize.textContent = formatBytes(new Blob([fetched]).size);
+        }
+      } catch {
+        // Keep URL displayed
+      }
+    }
+  }
+
+  function closeInspectorModal() {
+    modal.hidden = true;
+    activeModalSvg = null;
+  }
+
+  async function loadResultsFromStorage() {
+    try {
+      const data = await chrome.storage.local.get([
+        "svgs",
+        "pageTitle",
+        "pageUrl",
+        "sourceTabId",
+        "lastError",
+        "scanning"
+      ]);
+
+      sourceTabId = data.sourceTabId || null;
+
+      if (data.pageUrl) {
+        try {
+          const parsed = new URL(data.pageUrl);
+          sourcePill.hidden = false;
+          sourceDomain.textContent = parsed.hostname || data.pageUrl;
+          sourceDomain.title = data.pageUrl;
+        } catch {
+          sourcePill.hidden = true;
+        }
+      }
+
+      if (data.scanning && (!data.svgs || !data.svgs.length)) {
+        loadingDiv.hidden = false;
+        noSvgDiv.hidden = true;
+        contentDiv.hidden = true;
+        return;
+      }
+
+      allSvgs = Array.isArray(data.svgs) ? data.svgs : [];
+      selectedKeys.clear();
+      updateStatsAndCounts();
+      updateSelectionBadge();
+      renderCards();
+
+      if (data.lastError && !allSvgs.length) {
+        showToast(data.lastError, true);
+      }
+    } catch (error) {
+      console.error("Failed to read SVGs from storage:", error);
+      allSvgs = [];
+      renderCards();
+    }
+  }
+
+  function triggerRescan() {
+    rescanBtn.disabled = true;
+    chrome.runtime.sendMessage({ action: "rescanSourceTab", tabId: sourceTabId }, (res) => {
+      rescanBtn.disabled = false;
+      if (chrome.runtime.lastError || !res?.ok) {
+        showToast(res?.error || t("toastRescanErr"), true);
+        return;
+      }
+      showToast(t("toastRescanOk"));
     });
+  }
 
-    actions.appendChild(copyBtn);
+  // Event Listeners
+  themeToggle.addEventListener("click", async () => {
+    const isDark = !document.documentElement.classList.contains("dark");
+    const next = isDark ? "dark" : "light";
+    applyTheme(next);
+    try {
+      await chrome.storage.local.set({ theme: next });
+    } catch {
+      // Ignore storage errors
+    }
+  });
 
-    // Assemble modal
-    content.appendChild(header);
-    content.appendChild(pre);
-    content.appendChild(actions);
-    modal.appendChild(content);
+  langToggleEn.addEventListener("click", async () => {
+    applyLanguage("en");
+    try {
+      await chrome.storage.local.set({ language: "en" });
+    } catch {}
+  });
 
-    // Close when clicking outside of content
-    modal.addEventListener('click', (event) => {
-      if (event.target === modal) {
-        document.body.removeChild(modal);
+  langToggleUk.addEventListener("click", async () => {
+    applyLanguage("uk");
+    try {
+      await chrome.storage.local.set({ language: "uk" });
+    } catch {}
+  });
+
+  rescanBtn.addEventListener("click", triggerRescan);
+
+  emptyRescanBtn.addEventListener("click", () => {
+    if (emptyRescanBtn.dataset.mode === "clear") {
+      currentSearch = "";
+      searchInput.value = "";
+      searchClear.hidden = true;
+      currentFilter = "all";
+      filterTabs.forEach((tab) => {
+        const active = tab.dataset.filter === "all";
+        tab.classList.toggle("is-active", active);
+        tab.setAttribute("aria-selected", String(active));
+      });
+      renderCards();
+    } else {
+      triggerRescan();
+    }
+  });
+
+  searchInput.addEventListener("input", () => {
+    currentSearch = searchInput.value;
+    searchClear.hidden = !currentSearch;
+    renderCards();
+  });
+
+  searchClear.addEventListener("click", () => {
+    currentSearch = "";
+    searchInput.value = "";
+    searchClear.hidden = true;
+    renderCards();
+    searchInput.focus();
+  });
+
+  sortSelect.addEventListener("change", () => {
+    currentSort = sortSelect.value;
+    renderCards();
+  });
+
+  filterTabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      currentFilter = tab.dataset.filter || "all";
+      filterTabs.forEach((other) => {
+        const active = other === tab;
+        other.classList.toggle("is-active", active);
+        other.setAttribute("aria-selected", String(active));
+      });
+      renderCards();
+    });
+  });
+
+  backdropBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      currentBackdrop = btn.dataset.backdrop || "grid";
+      backdropBtns.forEach((b) => b.classList.toggle("is-active", b === btn));
+      document.querySelectorAll(".svg-preview").forEach((stage) => {
+        stage.className = `svg-preview canvas-${currentBackdrop}`;
+      });
+      if (!modal.hidden) {
+        modalPreviewStage.className = `modal-preview-stage canvas-${currentBackdrop}`;
+      }
+    });
+  });
+
+  selectAllCheckbox.addEventListener("change", () => {
+    const items = computeFilteredAndSorted();
+    if (selectAllCheckbox.checked) {
+      items.forEach(({ svg, idx }) => selectedKeys.add(getSvgKey(svg, idx)));
+    } else {
+      items.forEach(({ svg, idx }) => selectedKeys.delete(getSvgKey(svg, idx)));
+    }
+    updateSelectionBadge();
+    renderCards();
+  });
+
+  downloadAllBtn.addEventListener("click", () => {
+    if (selectedKeys.size > 0) {
+      const selected = allSvgs.filter((svg, idx) => selectedKeys.has(getSvgKey(svg, idx)));
+      downloadZipArchive(selected);
+    } else {
+      downloadZipArchive(filteredSvgs.length ? filteredSvgs : allSvgs);
+    }
+  });
+
+  // Modal handlers
+  modalBackdrop.addEventListener("click", closeInspectorModal);
+  modalCloseBtn.addEventListener("click", closeInspectorModal);
+
+  scalePills.forEach((pill) => {
+    pill.addEventListener("click", () => {
+      pngExportScale = parseInt(pill.dataset.scale, 10) || 2;
+      scalePills.forEach((p) => p.classList.toggle("is-active", p === pill));
+    });
+  });
+
+  modalCopyBtn.addEventListener("click", async () => {
+    if (!activeModalSvg) return;
+    try {
+      const text = await resolveSvgMarkup(activeModalSvg).catch(() => activeModalSvg.url || "");
+      await navigator.clipboard.writeText(text);
+      showToast(t("toastCopied"));
+    } catch {
+      showToast(t("toastCopyError"), true);
+    }
+  });
+
+  modalCopyDataUriBtn.addEventListener("click", async () => {
+    if (!activeModalSvg) return;
+    try {
+      const text = await resolveSvgMarkup(activeModalSvg);
+      const dataUri = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(text)}`;
+      await navigator.clipboard.writeText(dataUri);
+      showToast(t("toastDataUriCopied"));
+    } catch {
+      showToast(t("toastCopyError"), true);
+    }
+  });
+
+  modalPngBtn.addEventListener("click", () => {
+    if (activeModalSvg) downloadSinglePng(activeModalSvg, pngExportScale);
+  });
+
+  modalSaveBtn.addEventListener("click", () => {
+    if (activeModalSvg) downloadSingleSvg(activeModalSvg);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !modal.hidden) {
+      closeInspectorModal();
+    } else if (
+      event.key === "/" &&
+      modal.hidden &&
+      document.activeElement !== searchInput &&
+      !toolbarDiv.hidden
+    ) {
+      event.preventDefault();
+      searchInput.focus();
+    }
+  });
+
+  // Live updates from background or storage changes
+  try {
+    chrome.runtime.onMessage.addListener((message) => {
+      if (message?.action === "svgsUpdated" || message?.action === "refreshSVGs") {
+        loadResultsFromStorage();
+      } else if (message?.action === "showError" && message.message) {
+        showToast(message.message, true);
       }
     });
 
-    return modal;
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area === "local" && changes.svgs) {
+        loadResultsFromStorage();
+      }
+    });
+  } catch {
+    // Ignore outside extension context
   }
 
-  // Function to download SVG - fixed implementation
-  function downloadSVG(svg, filename) {
-    return new Promise((resolve, reject) => {
-      try {
-        if (svg.type === 'inline' && svg.content) {
-          // Create blob from SVG content
-          const blob = new Blob([svg.content], { type: 'image/svg+xml' });
-          const url = URL.createObjectURL(blob);
-
-          // Create temporary link and trigger download
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = filename;
-          a.style.display = 'none';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-
-          // Clean up URL object
-          setTimeout(() => URL.revokeObjectURL(url), 1000);
-          resolve();
-          } else if (svg.url) {
-            // For URL-based SVGs, fetch content first
-            fetch(svg.url)
-              .then(response => response.text())
-              .then(svgText => {
-                const blob = new Blob([svgText], { type: 'image/svg+xml' });
-                const url = URL.createObjectURL(blob);
-
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                a.style.display = 'none';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-
-                setTimeout(() => URL.revokeObjectURL(url), 1000);
-                resolve();
-              })
-              .catch(error => {
-                console.error("Failed to fetch SVG:", error);
-
-                // Direct URL download as a fallback
-                const a = document.createElement('a');
-                a.href = svg.url;
-                a.download = filename;
-                a.style.display = 'none';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                resolve();
-              });
-          } else {
-            reject(new Error("Invalid SVG data"));
-          }
-          } catch (error) {
-          console.error("Download failed:", error);
-          reject(error);
-          }
-          });
-          }
-
-          // Load SVGs from storage
-          try {
-          chrome.storage.local.get('svgs').then((data) => {
-          const svgs = data.svgs || [];
-
-          // Update download all button text with proper translation
-          if (downloadAllText) {
-          const currentLang = localStorage.getItem('language') || 'en';
-          downloadAllText.textContent = translations[currentLang].downloadAll;
-          }
-
-          // Set up Download All button only if we have SVGs
-          if (downloadAllBtn && svgs && svgs.length > 0) {
-          downloadAllBtn.addEventListener('click', () => {
-            downloadAllSVGs(svgs);
-          });
-          } else if (downloadAllBtn) {
-          downloadAllBtn.style.display = 'none';
-          }
-
-          loadingDiv.style.display = 'none';
-
-          if (!svgs || svgs.length === 0) {
-          noSvgDiv.style.display = 'block';
-          return;
-          }
-
-          contentDiv.style.display = 'grid';
-          contentDiv.innerHTML = '';  // Clear any existing content
-
-          // Create shared tooltip
-          const tooltip = createTooltip('');
-
-          // Create element for each SVG
-          svgs.forEach(svg => {
-          if (!svg) return; // Skip invalid entries
-
-          // Create SVG item container
-          const svgItem = document.createElement('div');
-          svgItem.className = 'svg-item';
-
-          // Create SVG preview section
-          const previewDiv = document.createElement('div');
-          previewDiv.className = 'svg-preview';
-
-          // Variable to store reference to the SVG element
-          let svgElement = null;
-
-          // Handle different SVG types
-          if (svg.type === 'inline' && svg.content) {
-            try {
-              // Create SVG element from content
-              const parser = new DOMParser();
-              const svgDoc = parser.parseFromString(svg.content, "image/svg+xml");
-
-              // Check for parsing errors
-              const parserError = svgDoc.querySelector("parsererror");
-              if (parserError) {
-                throw new Error("SVG parsing error");
-              }
-
-              svgElement = document.importNode(svgDoc.documentElement, true);
-
-              // Add attributes for accessibility and display
-              if (!svgElement.hasAttribute('aria-label')) {
-                svgElement.setAttribute('aria-label', svg.name || 'SVG Image');
-              }
-
-              previewDiv.appendChild(svgElement);
-            } catch (error) {
-              console.error("Error creating SVG element:", error);
-
-              // Create error placeholder
-              const errorIcon = createSVGIcon([
-                {
-                  type: "circle",
-                  attributes: { cx: "12", cy: "12", r: "10" }
-                },
-                {
-                  type: "line",
-                  attributes: { x1: "9", y1: "9", x2: "15", y2: "15" }
-                },
-                {
-                  type: "line",
-                  attributes: { x1: "15", y1: "9", x2: "9", y2: "15" }
-                }
-              ]);
-
-              previewDiv.appendChild(errorIcon);
-              previewDiv.appendChild(document.createTextNode(" Error displaying SVG"));
-            }
-          } else if (svg.url) {
-            // For URL-based SVGs (image, object, background)
-            const img = document.createElement('img');
-            img.src = svg.url;
-            img.alt = svg.name || 'SVG Image';
-            img.loading = 'lazy';
-
-            // Handle loading errors
-            img.onerror = () => {
-              img.style.display = 'none';
-
-              const errorPlaceholder = document.createElement('div');
-              errorPlaceholder.style.display = 'flex';
-              errorPlaceholder.style.flexDirection = 'column';
-              errorPlaceholder.style.alignItems = 'center';
-              errorPlaceholder.style.justifyContent = 'center';
-              errorPlaceholder.style.height = '100%';
-              errorPlaceholder.style.width = '100%';
-
-              // Add error icon
-              const errorIcon = createSVGIcon([
-                {
-                  type: "circle",
-                  attributes: { cx: "12", cy: "12", r: "10" }
-                },
-                {
-                  type: "line",
-                  attributes: { x1: "9", y1: "9", x2: "15", y2: "15" }
-                },
-                {
-                  type: "line",
-                  attributes: { x1: "15", y1: "9", x2: "9", y2: "15" }
-                }
-              ]);
-
-              const errorText = document.createElement('div');
-              errorText.textContent = "Failed to load SVG";
-              errorText.style.marginTop = '0.5rem';
-              errorText.style.color = 'var(--muted-foreground)';
-
-              errorPlaceholder.appendChild(errorIcon);
-              errorPlaceholder.appendChild(errorText);
-              previewDiv.appendChild(errorPlaceholder);
-            };
-
-            previewDiv.appendChild(img);
-          }
-
-          // SVG Info section
-          const infoDiv = document.createElement('div');
-          infoDiv.className = 'svg-info';
-
-          // SVG Name
-          const nameElem = document.createElement('div');
-          nameElem.className = 'svg-name';
-          nameElem.textContent = svg.name || 'Unnamed SVG';
-          infoDiv.appendChild(nameElem);
-
-          // SVG Type
-          const typeElem = document.createElement('div');
-          typeElem.className = 'svg-type';
-          typeElem.dataset.svgType = svg.type;
-
-          const currentLang = localStorage.getItem('language') || 'en';
-          switch (svg.type) {
-            case 'inline':
-              typeElem.textContent = translations[currentLang].inlineType;
-              break;
-            case 'image':
-              typeElem.textContent = translations[currentLang].imageType;
-              break;
-            case 'object':
-              typeElem.textContent = translations[currentLang].objectType;
-              break;
-            case 'background':
-              typeElem.textContent = translations[currentLang].backgroundType;
-              break;
-          }
-
-          infoDiv.appendChild(typeElem);
-
-          // SVG Size
-          const sizeElem = document.createElement('div');
-          sizeElem.className = 'svg-size';
-
-          const dimensionsLabel = document.createElement('span');
-          dimensionsLabel.className = 'svg-dimensions-label';
-          dimensionsLabel.textContent = translations[currentLang].dimensions + ': ';
-          sizeElem.appendChild(dimensionsLabel);
-
-          const dimensionsValue = document.createElement('span');
-          dimensionsValue.textContent = formatDimensions(svg.width, svg.height);
-          sizeElem.appendChild(dimensionsValue);
-
-          infoDiv.appendChild(sizeElem);
-
-          // ViewBox (for inline SVGs)
-          if (svg.type === 'inline' && svg.viewBox) {
-            const viewBoxElem = document.createElement('div');
-            viewBoxElem.className = 'svg-viewbox';
-
-            const viewBoxLabel = document.createElement('span');
-            viewBoxLabel.className = 'svg-viewbox-label';
-            viewBoxLabel.textContent = translations[currentLang].viewBox + ': ';
-            viewBoxElem.appendChild(viewBoxLabel);
-
-            const viewBoxValue = document.createElement('span');
-            viewBoxValue.textContent = svg.viewBox;
-            viewBoxElem.appendChild(viewBoxValue);
-
-            infoDiv.appendChild(viewBoxElem);
-          }
-
-          // Action buttons
-          const buttonsDiv = document.createElement('div');
-          buttonsDiv.className = 'svg-buttons';
-
-          // Download button with icon
-          const downloadBtn = document.createElement('button');
-          downloadBtn.className = 'btn-save';
-
-          // Create download icon
-          const downloadIcon = createSVGIcon([
-            {
-              type: "path",
-              attributes: { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }
-            },
-            {
-              type: "polyline",
-              attributes: { points: "7 10 12 15 17 10" }
-            },
-            {
-              type: "line",
-              attributes: { x1: "12", y1: "15", x2: "12", y2: "3" }
-            }
-          ]);
-
-          downloadBtn.appendChild(downloadIcon);
-          downloadBtn.appendChild(document.createTextNode(` ${translations[currentLang].save}`));
-
-          // Download button click handler
-          downloadBtn.addEventListener('click', () => {
-            const filename = `${generateFileName(svg)}.svg`;
-
-            // Use our fixed download function
-            downloadSVG(svg, filename)
-              .then(() => {
-                showTooltip(tooltip, downloadBtn, "SVG downloaded successfully");
-              })
-              .catch(error => {
-                console.error("Download failed:", error);
-                showTooltip(tooltip, downloadBtn, "Failed to download SVG");
-              });
-          });
-
-          buttonsDiv.appendChild(downloadBtn);
-
-          // Save PNG button (new feature) - only for inline SVGs
-          if (svg.type === 'inline' && svgElement) {
-            const savePngBtn = document.createElement('button');
-            savePngBtn.className = 'btn-save-png';
-
-            // Create custom PNG icon
-            const pngIcon = createSVGIcon([
-              {
-                type: "rect",
-                attributes: { x: "3", y: "3", width: "18", height: "18", rx: "2", ry: "2" }
-              },
-              {
-                type: "text",
-                attributes: { 
-                  x: "12", 
-                  y: "14", 
-                  "text-anchor": "middle", 
-                  "font-size": "6", 
-                  fill: "currentColor" 
-                }
-              }
-            ]);
-
-            // Add PNG text to the icon
-            const textNode = document.createElementNS(svgNS, "text");
-            textNode.setAttribute("x", "12");
-            textNode.setAttribute("y", "14");
-            textNode.setAttribute("text-anchor", "middle");
-            textNode.setAttribute("fill", "currentColor");
-            textNode.setAttribute("font-size", "6");
-            textNode.textContent = "PNG";
-            pngIcon.appendChild(textNode);
-
-            savePngBtn.appendChild(pngIcon);
-            savePngBtn.appendChild(document.createTextNode(` ${translations[currentLang].savePNG}`));
-
-            // Save PNG button click handler with improved error handling
-            savePngBtn.addEventListener('click', async () => {
-              try {
-                // Show loading state
-                const originalText = savePngBtn.innerHTML;
-                savePngBtn.innerHTML = `
-                  <svg class="spinner-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <path d="M12 2a10 10 0 0 1 10 10"></path>
-                  </svg>
-                  <span>Converting...</span>
-                `;
-
-                // Add animation to spinner
-                const spinner = savePngBtn.querySelector('.spinner-icon');
-                if (spinner) {
-                  spinner.style.animation = 'spin 1.5s linear infinite';
-                }
-
-                // Make sure we actually have a valid SVG element
-                if (!svgElement || svgElement.nodeName !== 'svg') {
-                  // If we don't have a valid SVG element, try to recreate it from content
-                  if (svg.content) {
-                    const parser = new DOMParser();
-                    const svgDoc = parser.parseFromString(svg.content, "image/svg+xml");
-
-                    // Check for parsing errors
-                    const parserError = svgDoc.querySelector("parsererror");
-                    if (parserError) {
-                      throw new Error("Cannot parse SVG content");
-                    }
-
-                    svgElement = svgDoc.documentElement;
-                  } else {
-                    throw new Error("No valid SVG element found");
-                  }
-                }
-
-                // Convert SVG to PNG using our improved function
-                const pngDataUrl = await svgToPng(svgElement, svg.width, svg.height);
-
-                // Generate filename
-                const timestamp = new Date().toISOString()
-                  .replace(/[\-\:\.T]/g, '')
-                  .substring(0, 14);
-                const safeName = (svg.name || 'svg')
-                  .replace(/[^\w\-]/g, '-')
-                  .replace(/-+/g, '-')
-                  .substring(0, 50);
-                const filename = `${safeName}-${timestamp}.png`;
-
-                // Create download link and trigger download
-                const a = document.createElement('a');
-                a.href = pngDataUrl;
-                a.download = filename;
-                a.style.display = 'none';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-
-                // Show success state
-                savePngBtn.innerHTML = `
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                  </svg>
-                  <span>PNG Saved</span>
-                `;
-
-                // Reset button after 2 seconds
-                setTimeout(() => {
-                  savePngBtn.innerHTML = originalText;
-                }, 2000);
-
-              } catch (error) {
-                console.error("Error converting SVG to PNG:", error);
-
-                // Reset button with error message
-                savePngBtn.innerHTML = `
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                  </svg>
-                  <span>Conversion failed</span>
-                `;
-
-                // Show error tooltip
-                showTooltip(tooltip, savePngBtn, "Failed to convert to PNG: " + error.message);
-
-                // Reset button after 3 seconds
-                setTimeout(() => {
-                  savePngBtn.innerHTML = originalText;
-                }, 3000);
-              }
-            });
-
-            buttonsDiv.appendChild(savePngBtn);
-          }
-
-          // Copy SVG button
-          const copyBtn = document.createElement('button');
-          copyBtn.className = 'btn-copy';
-
-          // Create copy icon
-          const copyIcon = createSVGIcon([
-            {
-              type: "rect",
-              attributes: { x: "9", y: "9", width: "13", height: "13", rx: "2", ry: "2" }
-            },
-            {
-              type: "path",
-              attributes: { d: "M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" }
-            }
-          ]);
-
-          copyBtn.appendChild(copyIcon);
-          copyBtn.appendChild(document.createTextNode(` ${translations[currentLang].copy}`));
-
-          copyBtn.addEventListener('click', () => {
-            // Copy SVG content to clipboard
-            let textToCopy;
-
-            if (svg.type === 'inline') {
-              textToCopy = svg.content;
-            } else {
-              textToCopy = svg.url;
-            }
-
-            navigator.clipboard.writeText(textToCopy).then(() => {
-              showTooltip(tooltip, copyBtn, translations[currentLang].copied);
-            }).catch(error => {
-              console.error("Clipboard error:", error);
-              showTooltip(tooltip, copyBtn, "Failed to copy");
-            });
-          });
-
-          buttonsDiv.appendChild(copyBtn);
-
-          // View Source button (new feature)
-          const viewSourceBtn = document.createElement('button');
-          viewSourceBtn.className = 'btn-view-source';
-
-          // Create view source icon
-          const codeIcon = createSVGIcon([
-            {
-              type: "polyline",
-              attributes: { points: "16 18 22 12 16 6" }
-            },
-            {
-              type: "polyline",
-              attributes: { points: "8 6 2 12 8 18" }
-            }
-          ]);
-
-          viewSourceBtn.appendChild(codeIcon);
-          viewSourceBtn.appendChild(document.createTextNode(` ${translations[currentLang].viewSource}`));
-
-          viewSourceBtn.addEventListener('click', () => {
-            const modal = createSourceModal(svg);
-            document.body.appendChild(modal);
-          });
-
-          buttonsDiv.appendChild(viewSourceBtn);
-
-          // Add all elements to container
-          svgItem.appendChild(previewDiv);
-          svgItem.appendChild(infoDiv);
-          svgItem.appendChild(buttonsDiv);
-          contentDiv.appendChild(svgItem);
-          });
-          }).catch(error => {
-          loadingDiv.style.display = 'none';
-
-          // Create and show error message
-          const errorDiv = document.createElement('div');
-          errorDiv.style.textAlign = 'center';
-          errorDiv.style.padding = '2rem';
-          errorDiv.style.color = 'var(--muted-foreground)';
-
-          const errorIcon = document.createElement('div');
-          errorIcon.innerHTML = `
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1rem;">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="8" x2="12" y2="12"></line>
-            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-          </svg>
-          `;
-
-          const currentLang = localStorage.getItem('language') || 'en';
-          const errorMsg = document.createElement('p');
-          errorMsg.textContent = `${translations[currentLang].error}${error.message}`;
-
-          const errorHint = document.createElement('p');
-          errorHint.style.marginTop = '1rem';
-          errorHint.style.fontSize = '0.875rem';
-          errorHint.textContent = translations[currentLang].errorHint;
-
-          // Add refresh button
-          const refreshBtn = document.createElement('button');
-          refreshBtn.textContent = translations[currentLang].refresh;
-          refreshBtn.style.marginTop = '1rem';
-          refreshBtn.style.backgroundColor = 'var(--primary)';
-          refreshBtn.style.color = 'var(--primary-foreground)';
-          refreshBtn.style.border = 'none';
-          refreshBtn.style.padding = '0.5rem 1rem';
-          refreshBtn.style.borderRadius = 'var(--radius)';
-          refreshBtn.style.cursor = 'pointer';
-
-          refreshBtn.addEventListener('click', () => {
-          window.location.reload();
-          });
-
-          errorDiv.appendChild(errorIcon);
-          errorDiv.appendChild(errorMsg);
-          errorDiv.appendChild(errorHint);
-          errorDiv.appendChild(refreshBtn);
-
-          contentDiv.innerHTML = '';
-          contentDiv.appendChild(errorDiv);
-          contentDiv.style.display = 'block';
-          });
-          } catch (error) {
-          // Handle case where chrome.storage is not available
-          console.error("Error accessing browser storage:", error);
-          loadingDiv.style.display = 'none';
-
-          const errorDiv = document.createElement('div');
-          errorDiv.style.textAlign = 'center';
-          errorDiv.style.padding = '2rem';
-          errorDiv.style.color = 'var(--muted-foreground)';
-
-          const currentLang = localStorage.getItem('language') || 'en';
-          errorDiv.textContent = translations[currentLang].errorHint;
-
-          contentDiv.innerHTML = '';
-          contentDiv.appendChild(errorDiv);
-          contentDiv.style.display = 'block';
-          }
-
-          // Listen for messages from background script or popup
-          try {
-          chrome.runtime.onMessage.addListener((message) => {
-          if (message.action === "refreshSVGs") {
-          window.location.reload();
-          } else if (message.action === "showError") {
-          // Display error message
-          loadingDiv.style.display = 'none';
-          noSvgDiv.style.display = 'none';
-
-          const errorDiv = document.createElement('div');
-          errorDiv.className = 'error-message';
-          errorDiv.style.textAlign = 'center';
-          errorDiv.style.padding = '2rem';
-
-          const currentLang = localStorage.getItem('language') || 'en';
-          errorDiv.textContent = message.message || translations[currentLang].errorHint;
-
-          contentDiv.innerHTML = '';
-          contentDiv.appendChild(errorDiv);
-          contentDiv.style.display = 'block';
-          }
-          });
-          } catch (error) {
-          console.error("Error setting up message listener:", error);
-          }
-          });
-
-          // Set dark theme by default
-          document.documentElement.classList.add('dark');
-          localStorage.setItem('theme', 'dark');
-
-          // Set English language by default
-          document.documentElement.setAttribute('lang', 'en');
-          localStorage.setItem('language', 'en');
+  // Boot
+  initTheme().then(initLanguage).then(loadResultsFromStorage);
+});

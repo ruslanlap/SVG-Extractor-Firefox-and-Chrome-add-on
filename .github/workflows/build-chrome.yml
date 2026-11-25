@@ -41,6 +41,7 @@ jobs:
           cp results.css chrome-build/
           cp -r icons chrome-build/
           cp -r lib chrome-build/
+          cp -r fonts chrome-build/ || true
           cp -r data chrome-build/ || true
 
       - name: Validate Chrome manifest

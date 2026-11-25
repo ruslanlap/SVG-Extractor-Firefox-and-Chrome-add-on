@@ -1,218 +1,304 @@
 <!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>SVG Extractor Pro - Results</title>
-        <link rel="stylesheet" href="results.css" />
-        <script src="lib/jszip.min.js"></script>
-    </head>
-    <body>
-        <!-- Feedback and Support Section -->
-        <div class="feedback-support">
-            <div class="support-container">
-                <div class="support-item">
-                    <a
-                        href="https://forms.gle/xDCN4ACr5QKDmYkYA"
-                        class="support-link"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <path
-                                d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
-                            ></path>
-                        </svg>
-                        <span
-                            class="feedback-text"
-                            data-en="Leave Feedback"
-                            data-uk="Залишити відгук"
-                            >Leave Feedback</span
-                        >
-                    </a>
-                </div>
+<html lang="en" class="dark">
 
-                <div class="support-item">
-                    <a
-                        href="https://forms.gle/xDCN4ACr5QKDmYkYA"
-                        class="support-link"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <path d="M8 2h8"></path>
-                            <path d="M12 14v7"></path>
-                            <path d="M5 8h14"></path>
-                            <path d="M7 17a5 5 0 1 0 10 0"></path>
-                            <path d="M12 2v7"></path>
-                        </svg>
-                        <span
-                            class="feedback-text"
-                            data-en="Report a Bug"
-                            data-uk="Повідомити про помилку"
-                            >Report a Bug</span
-                        >
-                    </a>
-                </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SVG Extractor Pro — Vector Studio</title>
+  <link rel="stylesheet" href="results.css" />
+  <script src="lib/jszip.min.js"></script>
+</head>
 
-                <div class="support-item">
-                    <a
-                        href="https://ruslanlap.github.io/ruslanlap_buymeacoffe/"
-                        class="support-link"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
-                            <path
-                                d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"
-                            ></path>
-                            <line x1="6" y1="1" x2="6" y2="4"></line>
-                            <line x1="10" y1="1" x2="10" y2="4"></line>
-                            <line x1="14" y1="1" x2="14" y2="4"></line>
-                        </svg>
-                        <span
-                            class="feedback-text"
-                            data-en="Buy Me a Coffee"
-                            data-uk="Пригостити кавою"
-                            >Buy Me a Coffee</span
-                        >
-                    </a>
-                </div>
-            </div>
+<body>
+  <!-- Studio Top Navigation Bar -->
+  <header class="studio-header">
+    <div class="studio-header-inner">
+      <div class="brand-group">
+        <a href="#top" class="brand-lockup" id="brand-home">
+          <img src="icons/icon48.png" alt="SVG Extractor Pro" class="brand-icon" />
+          <span class="brand-author">ruslanlap</span>
+          <span class="brand-slash">/ svg-extractor-pro</span>
+        </a>
+        <div class="source-pill" id="source-pill" hidden>
+          <span class="source-dot"></span>
+          <span id="source-domain" class="source-domain"></span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button type="button" id="rescan-btn" class="studio-btn studio-btn-outline" title="Rescan source page">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path>
+            <path d="M21 3v5h-5"></path>
+          </svg>
+          <span id="rescan-label">Rescan</span>
+        </button>
+
+        <div class="lang-switcher" role="group" aria-label="Language switcher">
+          <button type="button" id="lang-toggle-en" class="lang-btn is-active" aria-pressed="true" title="English">EN</button>
+          <button type="button" id="lang-toggle-uk" class="lang-btn" aria-pressed="false" title="Українська">UA</button>
         </div>
 
-        <div class="container">
-            <div class="controls">
-                <button id="lang-toggle-en" class="lang-toggle" title="English">
-                    <span style="font-size: 18px">🇺🇸</span>
-                </button>
-                <button
-                    id="lang-toggle-uk"
-                    class="lang-toggle"
-                    title="Українська"
-                >
-                    <span style="font-size: 18px">🇺🇦</span>
-                </button>
-                <button
-                    id="theme-toggle"
-                    class="theme-toggle"
-                    aria-label="Toggle dark mode"
-                >
-                    <svg
-                        id="theme-icon-light"
-                        class="theme-icon"
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                    >
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line
-                            x1="18.36"
-                            y1="18.36"
-                            x2="19.78"
-                            y2="19.78"
-                        ></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                    <svg
-                        id="theme-icon-dark"
-                        class="theme-icon"
-                        style="display: none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                    >
-                        <path
-                            d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
-                        ></path>
-                    </svg>
-                </button>
-            </div>
-            <div id="header">
-                <h1 id="page-title">SVG Extractor Pro</h1>
-                <p id="page-subtitle">SVGs found on the page</p>
-                <button id="download-all-btn" class="download-all-btn">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                    >
-                        <path
-                            d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
-                        ></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                    <span id="download-all-text">Download All SVGs</span>
-                </button>
+        <button type="button" id="theme-toggle" class="icon-btn" aria-label="Toggle color theme" title="Toggle theme">
+          <svg id="theme-icon-light" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2"></path>
+            <path d="M12 20v2"></path>
+            <path d="m4.93 4.93 1.41 1.41"></path>
+            <path d="m17.66 17.66 1.41 1.41"></path>
+            <path d="M2 12h2"></path>
+            <path d="M20 12h2"></path>
+            <path d="m6.34 17.66-1.41 1.41"></path>
+            <path d="m19.07 4.93-1.41 1.41"></path>
+          </svg>
+          <svg id="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"></path>
+          </svg>
+        </button>
+
+        <a href="https://ruslanlap.github.io/ruslanlap_buymeacoffe/" target="_blank" rel="noopener noreferrer" class="studio-btn studio-btn-solid header-coffee-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M10 2v2"></path>
+            <path d="M14 2v2"></path>
+            <path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"></path>
+            <path d="M6 2v2"></path>
+          </svg>
+          <span id="header-coffee-text">Buy a coffee</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main id="top" class="studio-main">
+    <!-- Hero Overview Section -->
+    <section class="hero-strip">
+      <div class="hero-grid-bg vector-grid vector-grid-fade" aria-hidden="true"></div>
+      <div class="container hero-content">
+        <div class="hero-badge">
+          <span class="hero-badge-dot"></span>
+          <span id="hero-kicker">VECTOR ASSET INSPECTOR</span>
+        </div>
+
+        <div class="hero-headline-row">
+          <div class="hero-titles">
+            <h1 id="page-title" class="hero-title">SVG Extractor Pro</h1>
+            <p id="page-subtitle" class="hero-subtitle">Inspect, preview, and export clean vector assets from the active page.</p>
+          </div>
+
+          <div class="hero-primary-actions">
+            <button type="button" id="download-all-btn" class="studio-btn studio-btn-primary">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span id="download-all-text">Download All ZIP</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="hero-stats" id="hero-stats">
+          <span class="stat-chip" id="stat-total">• 0 vectors</span>
+          <span class="stat-chip" id="stat-inline">• 0 inline</span>
+          <span class="stat-chip" id="stat-sprite">• 0 sprite</span>
+          <span class="stat-chip" id="stat-image">• 0 image</span>
+          <span class="stat-chip" id="stat-bg">• 0 background</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Studio Workspace -->
+    <section class="container workspace-section">
+      <!-- Filter, Search, Backdrop & Selection Toolbar -->
+      <div class="studio-toolbar" id="studio-toolbar" hidden>
+        <div class="toolbar-row toolbar-row-top">
+          <div class="search-box">
+            <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.3-4.3"></path>
+            </svg>
+            <input type="text" id="search-input" class="search-input" placeholder="Search by name, viewBox, or size..." autocomplete="off" />
+            <kbd class="search-kbd">/</kbd>
+            <button type="button" id="search-clear" class="search-clear" hidden aria-label="Clear search">&times;</button>
+          </div>
+
+          <div class="toolbar-right-controls">
+            <div class="select-wrap">
+              <label for="sort-select" class="sr-only" id="sort-label">Sort vectors</label>
+              <select id="sort-select" class="studio-select">
+                <option value="order">Page order</option>
+                <option value="name">Name (A–Z)</option>
+                <option value="dimensions">Dimensions (largest)</option>
+                <option value="size">File size (largest)</option>
+              </select>
             </div>
 
-            <div id="loading">
-                <div class="spinner"></div>
-                Loading SVGs...
+            <div class="backdrop-switcher" role="group" aria-label="Preview canvas backdrop">
+              <button type="button" class="backdrop-btn is-active" data-backdrop="grid" title="Grid">Grid</button>
+              <button type="button" class="backdrop-btn" data-backdrop="dark" title="Dark">Dark</button>
+              <button type="button" class="backdrop-btn" data-backdrop="light" title="Light">Light</button>
+              <button type="button" class="backdrop-btn" data-backdrop="checker" title="Checker">Checker</button>
             </div>
-            <div id="no-svg" style="display: none">
-                No SVG images found on this page.
-            </div>
-            <div id="content" style="display: none">
-                <!-- Content will be generated here with found SVGs -->
-            </div>
+          </div>
         </div>
-        <script src="results.js"></script>
-    </body>
+
+        <div class="toolbar-row toolbar-row-bottom">
+          <div class="filter-tabs" id="filter-tabs" role="tablist" aria-label="Filter by SVG type">
+            <button type="button" class="filter-tab is-active" data-filter="all" role="tab" aria-selected="true">
+              <span data-i18n="filterAll">All</span>
+              <span class="filter-count" id="count-all">0</span>
+            </button>
+            <button type="button" class="filter-tab" data-filter="inline" role="tab" aria-selected="false">
+              <span data-i18n="filterInline">Inline</span>
+              <span class="filter-count" id="count-inline">0</span>
+            </button>
+            <button type="button" class="filter-tab" data-filter="sprite" role="tab" aria-selected="false">
+              <span data-i18n="filterSprite">Sprite</span>
+              <span class="filter-count" id="count-sprite">0</span>
+            </button>
+            <button type="button" class="filter-tab" data-filter="image" role="tab" aria-selected="false">
+              <span data-i18n="filterImage">Image</span>
+              <span class="filter-count" id="count-image">0</span>
+            </button>
+            <button type="button" class="filter-tab" data-filter="background" role="tab" aria-selected="false">
+              <span data-i18n="filterBackground">Background</span>
+              <span class="filter-count" id="count-background">0</span>
+            </button>
+          </div>
+
+          <div class="selection-controls">
+            <label class="select-all-label">
+              <input type="checkbox" id="select-all-checkbox" class="studio-checkbox" />
+              <span id="select-all-text">Select all</span>
+            </label>
+            <span id="selection-badge" class="selection-badge" hidden>0 selected</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loading" class="studio-state-card">
+        <div class="spinner"></div>
+        <p id="loading-text" class="state-title">Scanning page vectors...</p>
+      </div>
+
+      <!-- Empty / Error State -->
+      <div id="no-svg" class="studio-state-card specimen-frame" hidden>
+        <span class="anchor-node anchor-tl" aria-hidden="true"></span>
+        <span class="anchor-node anchor-tr" aria-hidden="true"></span>
+        <span class="anchor-node anchor-bl" aria-hidden="true"></span>
+        <span class="anchor-node anchor-br" aria-hidden="true"></span>
+        <div class="state-icon-box">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+            <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+            <path d="M2 2l7.586 7.586"></path>
+            <circle cx="11" cy="11" r="2"></circle>
+          </svg>
+        </div>
+        <h2 id="empty-title" class="state-title">No SVG vectors found</h2>
+        <p id="empty-desc" class="state-desc">This page may not contain vector assets yet, or dynamic icons haven't mounted.</p>
+        <div class="state-actions">
+          <button type="button" id="empty-rescan-btn" class="studio-btn studio-btn-primary">Rescan page</button>
+        </div>
+      </div>
+
+      <!-- Grid Content -->
+      <div id="content" class="svg-grid" hidden></div>
+    </section>
+  </main>
+
+  <!-- Studio Inspector Modal -->
+  <div id="inspector-modal" class="studio-modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <div class="modal-dialog specimen-frame">
+      <span class="anchor-node anchor-tl" aria-hidden="true"></span>
+      <span class="anchor-node anchor-tr" aria-hidden="true"></span>
+      <span class="anchor-node anchor-bl" aria-hidden="true"></span>
+      <span class="anchor-node anchor-br" aria-hidden="true"></span>
+
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span id="modal-type-badge" class="type-badge">INLINE</span>
+          <h3 id="modal-title" class="modal-title">vector.svg</h3>
+        </div>
+        <button type="button" id="modal-close-btn" class="icon-btn" aria-label="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-preview-col">
+          <div id="modal-preview-stage" class="modal-preview-stage canvas-grid"></div>
+          <div class="modal-meta-grid">
+            <div class="meta-cell">
+              <span class="meta-label" id="modal-meta-dim-label">DIMENSIONS</span>
+              <span class="meta-value" id="modal-meta-dim">—</span>
+            </div>
+            <div class="meta-cell">
+              <span class="meta-label" id="modal-meta-vb-label">VIEWBOX</span>
+              <span class="meta-value" id="modal-meta-vb">—</span>
+            </div>
+            <div class="meta-cell">
+              <span class="meta-label" id="modal-meta-size-label">SIZE</span>
+              <span class="meta-value" id="modal-meta-size">—</span>
+            </div>
+          </div>
+          <div class="modal-png-scale">
+            <span class="meta-label" id="modal-scale-label">PNG SCALE</span>
+            <div class="scale-pills" role="group" aria-label="PNG export scale">
+              <button type="button" class="scale-pill" data-scale="1">1&times;</button>
+              <button type="button" class="scale-pill is-active" data-scale="2">2&times;</button>
+              <button type="button" class="scale-pill" data-scale="4">4&times;</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-code-col">
+          <div class="code-header">
+            <span id="modal-code-label" class="meta-label">SOURCE CODE</span>
+            <button type="button" id="modal-copy-datauri-btn" class="studio-btn studio-btn-ghost studio-btn-sm">Copy Data URI</button>
+          </div>
+          <pre class="code-block"><code id="modal-code-content"></code></pre>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" id="modal-copy-btn" class="studio-btn studio-btn-outline">Copy SVG</button>
+        <button type="button" id="modal-png-btn" class="studio-btn studio-btn-outline">Export PNG</button>
+        <button type="button" id="modal-save-btn" class="studio-btn studio-btn-primary">Save SVG</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Stack -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Studio Footer -->
+  <footer class="studio-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <div class="footer-lockup">
+          <img src="icons/icon48.png" alt="SVG Extractor Pro" class="footer-icon" />
+          <span class="footer-repo">ruslanlap / svg-extractor-pro</span>
+        </div>
+        <p id="footer-desc" class="footer-desc">Built independently for designers and frontend engineers. Zero ads, zero tracking.</p>
+      </div>
+
+      <div class="footer-links">
+        <a href="https://forms.gle/xDCN4ACr5QKDmYkYA" target="_blank" rel="noopener noreferrer" class="footer-link" data-i18n="leaveFeedback">Leave Feedback</a>
+        <a href="https://forms.gle/TYdupLT2yAHLWg4k7" target="_blank" rel="noopener noreferrer" class="footer-link" data-i18n="reportABug">Report a Bug</a>
+        <a href="https://addons.mozilla.org/en-US/firefox/addon/svg-extractor-pro/" target="_blank" rel="noopener noreferrer" class="footer-link">Firefox Add-on</a>
+        <a href="https://github.com/ruslanlap/SVG-Extractor-Firefox-add-on" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="https://ruslanlap.github.io/ruslanlap_buymeacoffe/" target="_blank" rel="noopener noreferrer" class="footer-link footer-link-accent" data-i18n="buyMeACoffee">Buy Me a Coffee</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="results.js"></script>
+</body>
+
 </html>

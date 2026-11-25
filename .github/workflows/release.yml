@@ -131,6 +131,7 @@ jobs:
           cp results.css firefox-build/
           cp -r icons firefox-build/
           cp -r lib firefox-build/
+          cp -r fonts firefox-build/ || true
           cp -r data firefox-build/ || true
 
       - name: Build ZIP
@@ -173,6 +174,7 @@ jobs:
           cp results.css chrome-build/
           cp -r icons chrome-build/
           cp -r lib chrome-build/
+          cp -r fonts chrome-build/ || true
           cp -r data chrome-build/ || true
 
       - name: Create ZIP

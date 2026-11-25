@@ -45,6 +45,7 @@ jobs:
           cp results.css firefox-build/
           cp -r icons firefox-build/
           cp -r lib firefox-build/
+          cp -r fonts firefox-build/ || true
           cp -r data firefox-build/ || true
 
       - name: Update manifest for Firefox

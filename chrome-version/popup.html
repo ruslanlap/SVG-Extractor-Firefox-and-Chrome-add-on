@@ -1,110 +1,281 @@
-<!DOCTYPE html>
-<html lang="uk">
+<!doctype html>
+<html lang="en" class="dark">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SVG Extractor</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SVG Extractor Pro</title>
   <style>
+    @font-face {
+      font-family: "Onest";
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url("fonts/onest-cyrillic.woff2") format("woff2");
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+    @font-face {
+      font-family: "Onest";
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url("fonts/onest-latin-ext.woff2") format("woff2");
+      unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+    @font-face {
+      font-family: "Onest";
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url("fonts/onest-latin.woff2") format("woff2");
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      font-style: normal;
+      font-weight: 100 800;
+      font-display: swap;
+      src: url("fonts/jetbrains-mono-cyrillic.woff2") format("woff2");
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      font-style: normal;
+      font-weight: 100 800;
+      font-display: swap;
+      src: url("fonts/jetbrains-mono-latin.woff2") format("woff2");
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
     :root {
-      --foreground: #000000;
-      --background: #ffffff;
-      --primary: #4a6da7;
-      --primary-hover: #3a5a8f;
-      --border: #e2e8f0;
-      --muted: #64748b;
-      --error: #e53e3e;
-      --success: #48bb78;
-      --radius: 0.375rem;
+      --font-sans: "Onest", ui-sans-serif, system-ui, -apple-system, sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      --background: 40 23% 97%;
+      --foreground: 228 18% 9%;
+      --card: 0 0% 100%;
+      --primary: 254 65% 54%;
+      --primary-foreground: 0 0% 100%;
+      --muted: 40 16% 93%;
+      --muted-foreground: 225 10% 40%;
+      --emerald: 158 64% 40%;
+      --border: 40 14% 87%;
+      --grid-line: rgba(19, 21, 27, 0.055);
     }
 
     .dark {
-      --foreground: #f8f9fa;
-      --background: #1a202c;
-      --primary: #5d87c6;
-      --primary-hover: #4971b2;
-      --border: #2d3748;
-      --muted: #a0aec0;
-      --radius: 0.375rem;
+      --background: 228 14% 5%;
+      --foreground: 220 20% 96%;
+      --card: 225 14% 8%;
+      --primary: 252 86% 77%;
+      --primary-foreground: 228 24% 8%;
+      --muted: 225 13% 12%;
+      --muted-foreground: 220 9% 62%;
+      --emerald: 158 64% 52%;
+      --border: 225 12% 16%;
+      --grid-line: rgba(242, 244, 248, 0.045);
     }
 
-    * {
+    *, *::before, *::after {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      border-color: hsl(var(--border));
     }
+
+    [hidden] { display: none !important; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-      width: 360px;
-      padding: 1rem;
-      background-color: var(--background);
-      color: var(--foreground);
-      transition: background-color 0.3s, color 0.3s;
+      font-family: var(--font-sans);
+      width: 390px;
+      max-height: 580px;
+      overflow-y: auto;
+      background-color: hsl(var(--background));
+      color: hsl(var(--foreground));
+      -webkit-font-smoothing: antialiased;
     }
 
-    .header {
+    .popup-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding: 0.75rem 1rem;
+      background-color: hsl(var(--background) / 0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid hsl(var(--border));
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 1rem;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 0.5rem;
+      justify-content: space-between;
+      gap: 0.5rem;
     }
 
-    h1 {
-      font-size: 1.25rem;
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-width: 0;
+    }
+
+    .brand img {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      box-shadow: 0 0 0 1px hsl(var(--border));
+    }
+
+    .brand h1 {
+      font-size: 0.9375rem;
       font-weight: 600;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
     }
 
     .controls {
       display: flex;
-      gap: 0.5rem;
+      align-items: center;
+      gap: 0.4rem;
     }
 
-    .control-btn {
-      background: none;
+    .lang-switcher {
+      display: inline-flex;
+      padding: 2px;
+      border-radius: 8px;
+      background-color: hsl(var(--muted));
+      border: 1px solid hsl(var(--border));
+    }
+
+    .lang-btn {
       border: none;
+      background: transparent;
+      padding: 0.22rem 0.42rem;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      color: hsl(var(--muted-foreground));
       cursor: pointer;
-      display: flex;
+    }
+
+    .lang-btn.is-active {
+      background-color: hsl(var(--card));
+      color: hsl(var(--foreground));
+    }
+
+    .icon-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid hsl(var(--border));
+      background-color: hsl(var(--card));
+      color: hsl(var(--muted-foreground));
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 0.25rem;
-      border-radius: var(--radius);
-      color: var(--foreground);
+      cursor: pointer;
     }
 
-    .control-btn:hover {
-      background-color: rgba(0, 0, 0, 0.05);
+    .icon-btn:hover {
+      background-color: hsl(var(--muted));
+      color: hsl(var(--foreground));
     }
 
-    .dark .control-btn:hover {
-      background-color: rgba(255, 255, 255, 0.1);
+    .popup-summary {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid hsl(var(--border));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      background-color: hsl(var(--card) / 0.5);
+    }
+
+    .summary-count {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 0.75rem;
+      color: hsl(var(--muted-foreground));
+    }
+
+    .studio-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      height: 30px;
+      padding: 0 0.7rem;
+      border-radius: 8px;
+      border: 1px solid hsl(var(--border));
+      background-color: hsl(var(--foreground));
+      color: hsl(var(--background));
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .studio-btn:hover {
+      opacity: 0.9;
+    }
+
+    .popup-body {
+      padding: 0.875rem 1rem 1rem;
     }
 
     #content {
-      display: none;
-      grid-template-columns: repeat(1, 1fr);
-      gap: 1rem;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.875rem;
     }
 
     .svg-item {
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
+      border: 1px solid hsl(var(--border));
+      border-radius: 14px;
+      background-color: hsl(var(--card));
       overflow: hidden;
+    }
+
+    .card-topbar {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid hsl(var(--border));
+      background-color: hsl(var(--muted) / 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .svg-name {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .type-badge {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      font-weight: 600;
+      padding: 0.12rem 0.38rem;
+      border-radius: 5px;
+      text-transform: uppercase;
+      background-color: hsl(var(--primary) / 0.12);
+      color: hsl(var(--primary));
+      border: 1px solid hsl(var(--primary) / 0.25);
+      flex-shrink: 0;
     }
 
     .svg-preview {
-      height: 160px;
-      background-color: white;
+      height: 132px;
+      padding: 1rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 1rem;
       overflow: hidden;
-    }
-
-    .dark .svg-preview {
-      background-color: #2d3748;
+      background-color: hsl(var(--background));
+      background-image:
+        linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+      background-size: 20px 20px;
     }
 
     .svg-preview svg,
@@ -114,135 +285,121 @@
       object-fit: contain;
     }
 
-    .svg-info {
-      padding: 0.75rem;
-    }
-
-    .svg-name {
-      font-weight: 600;
-      margin-bottom: 0.25rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .svg-type,
-    .svg-size {
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin-bottom: 0.25rem;
+    .svg-meta {
+      padding: 0.45rem 0.75rem;
+      border-top: 1px solid hsl(var(--border));
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 0.6875rem;
+      color: hsl(var(--muted-foreground));
+      display: flex;
+      justify-content: space-between;
     }
 
     .svg-buttons {
-      display: flex;
-      gap: 0.5rem;
-      padding: 0 0.75rem 0.75rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.4rem;
+      padding: 0.6rem 0.75rem;
+      border-top: 1px solid hsl(var(--border));
     }
 
-    button {
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      padding: 0.5rem;
-      border-radius: var(--radius);
-      cursor: pointer;
-      font-size: 0.875rem;
-      display: flex;
+    .card-btn {
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid hsl(var(--border));
+      background-color: hsl(var(--muted) / 0.5);
+      color: hsl(var(--foreground));
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      font-weight: 500;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      flex: 1;
-      gap: 0.25rem;
-      transition: background-color 0.2s;
+      gap: 0.3rem;
+      cursor: pointer;
     }
 
-    button:hover {
-      background-color: var(--primary-hover);
+    .card-btn:hover {
+      background-color: hsl(var(--muted));
     }
 
-    .error-message {
-      color: var(--error);
-      margin-top: 1rem;
+    .card-btn-primary {
+      background-color: hsl(var(--primary));
+      border-color: hsl(var(--primary));
+      color: hsl(var(--primary-foreground));
+    }
+
+    .card-btn-primary:hover {
+      background-color: hsl(var(--primary));
+      opacity: 0.92;
+    }
+
+    .state-box {
+      padding: 2rem 1rem;
       text-align: center;
-    }
-
-    .loading {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 2rem 0;
-      text-align: center;
+      gap: 0.75rem;
+      color: hsl(var(--muted-foreground));
+      font-size: 0.875rem;
     }
 
     .spinner {
-      border: 3px solid rgba(0, 0, 0, 0.1);
-      border-top: 3px solid var(--primary);
-      border-radius: 50%;
-      width: 2rem;
-      height: 2rem;
-      animation: spin 1s linear infinite;
-      margin-bottom: 1rem;
-    }
-
-    .dark .spinner {
-      border-color: rgba(255, 255, 255, 0.1);
-      border-top-color: var(--primary);
+      width: 24px;
+      height: 24px;
+      border: 2.5px solid hsl(var(--border));
+      border-top-color: hsl(var(--primary));
+      border-radius: 9999px;
+      animation: spin 0.8s linear infinite;
     }
 
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    #no-svg {
-      text-align: center;
-      padding: 2rem 0;
-      color: var(--muted);
-      display: none;
-    }
-
-    #theme-icon-light, #theme-icon-dark {
-      display: none;
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h1 id="page-title">SVG Extractor</h1>
+  <header class="popup-header">
+    <div class="brand">
+      <img src="icons/icon48.png" alt="SVG Extractor Pro" />
+      <h1 id="page-title">SVG Extractor Pro</h1>
+    </div>
     <div class="controls">
-      <button id="lang-toggle-en" class="control-btn" title="English">
-        <span>EN</span>
-      </button>
-      <button id="lang-toggle-uk" class="control-btn" title="Українська">
-        <span>UK</span>
-      </button>
-      <button id="theme-toggle" class="control-btn" title="Theme">
-        <svg id="theme-icon-light" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="5"></circle>
-          <line x1="12" y1="1" x2="12" y2="3"></line>
-          <line x1="12" y1="21" x2="12" y2="23"></line>
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-          <line x1="1" y1="12" x2="3" y2="12"></line>
-          <line x1="21" y1="12" x2="23" y2="12"></line>
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+      <div class="lang-switcher" role="group" aria-label="Language switcher">
+        <button type="button" id="lang-toggle-en" class="lang-btn is-active" aria-pressed="true">EN</button>
+        <button type="button" id="lang-toggle-uk" class="lang-btn" aria-pressed="false">UA</button>
+      </div>
+      <button type="button" id="theme-toggle" class="icon-btn" title="Toggle theme" aria-label="Toggle theme">
+        <svg id="theme-icon-light" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2m-7.07-15.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2m-15.07 7.07 1.41-1.41m11.32-11.32 1.41-1.41"></path>
         </svg>
-        <svg id="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        <svg id="theme-icon-dark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" hidden aria-hidden="true">
+          <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"></path>
         </svg>
       </button>
     </div>
+  </header>
+
+  <div class="popup-summary" id="popup-summary" hidden>
+    <span class="summary-count" id="summary-count">0 vectors</span>
+    <button type="button" id="open-studio-btn" class="studio-btn">Open Studio</button>
   </div>
 
-  <div id="loading" class="loading">
-    <div class="spinner"></div>
-    <span>Searching for SVGs on the page...</span>
-  </div>
+  <main class="popup-body">
+    <div id="loading" class="state-box">
+      <div class="spinner"></div>
+      <span id="loading-text">Searching for SVGs on the page...</span>
+    </div>
 
-  <div id="no-svg">No SVG images found on this page</div>
+    <div id="no-svg" class="state-box" hidden>
+      <span id="no-svg-text">No SVG images found on this page.</span>
+    </div>
 
-  <div id="content"></div>
+    <div id="content" hidden></div>
+  </main>
 
   <script src="popup.js"></script>
 </body>
