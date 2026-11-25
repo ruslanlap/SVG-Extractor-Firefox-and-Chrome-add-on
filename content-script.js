@@ -169,17 +169,32 @@
     }
 
     // Unwrap proxy/image-optimizer query params (e.g. /_next/image?url=..., /_image?href=...)
+    // Parse parsed.search directly instead of using parsed.searchParams.entries(),
+    // which throws "not iterable" across Firefox Xray content-script compartments.
+    const queryPairs = [];
+    if (parsed.search && parsed.search.length > 1) {
+      for (const part of parsed.search.slice(1).split("&")) {
+        if (!part) continue;
+        const eqIdx = part.indexOf("=");
+        const rawKey = eqIdx === -1 ? part : part.slice(0, eqIdx);
+        const rawVal = eqIdx === -1 ? "" : part.slice(eqIdx + 1);
+        const key = tryDecodeURIComponent(rawKey.replace(/\+/g, " "));
+        const val = tryDecodeURIComponent(rawVal.replace(/\+/g, " "));
+        if (val) queryPairs.push([key, val]);
+      }
+    }
+
     const checkedKeys = new Set();
     const candidates = [];
     for (const key of PROXY_QUERY_KEYS) {
-      for (const val of parsed.searchParams.getAll(key)) {
-        if (val) candidates.push(val);
+      for (const [paramKey, paramVal] of queryPairs) {
+        if (paramKey === key) candidates.push(paramVal);
       }
       checkedKeys.add(key);
     }
-    for (const [key, val] of parsed.searchParams.entries()) {
-      if (!checkedKeys.has(key.toLowerCase()) && val) {
-        candidates.push(val);
+    for (const [paramKey, paramVal] of queryPairs) {
+      if (!checkedKeys.has(paramKey.toLowerCase())) {
+        candidates.push(paramVal);
       }
     }
 

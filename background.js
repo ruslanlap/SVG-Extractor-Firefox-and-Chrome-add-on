@@ -113,6 +113,22 @@ chrome.action.onClicked.addListener(async (tab) => {
   }
 });
 
+async function waitForTabReady(tabId, timeoutMs = 6000) {
+  const deadline = Date.now() + timeoutMs;
+  await new Promise((resolve) => setTimeout(resolve, 350));
+  while (Date.now() < deadline) {
+    try {
+      const current = await chrome.tabs.get(tabId);
+      if (current && current.status === "complete" && !current.discarded) {
+        return;
+      }
+    } catch {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+}
+
 // Desktop and mobile browsers may discard inactive tabs. Retry injection once.
 async function injectScanner(tabId) {
   try {
@@ -130,8 +146,8 @@ async function injectScanner(tabId) {
       if (tab.windowId !== undefined) {
         try { await chrome.windows.update(tab.windowId, { focused: true }); } catch {}
       }
-      // Give the browser time to restore a discarded tab.
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // Give the browser time to restore a discarded tab and finish loading.
+      await waitForTabReady(tabId, 6000);
       await chrome.scripting.executeScript({
         target: { tabId },
         files: ["content-script.js"]
